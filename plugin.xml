@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-preview-any-file" version="0.1.0">
+    <name>PreviewAnyFile</name>
+    <description>Plugin to preview any file in native mode by providing the local or external URL</description>
+    <license>Apache 2.0</license>
+    <keywords>cordova,device</keywords>
+    <js-module src="www/preview.js" name="PreviewAnyFile">
+        <clobbers target="window.PreviewAnyFile" />
+    </js-module>
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="PreviewAnyFile">
+                <param name="ios-package" value="HWPPreviewAnyFile"/>
+            </feature>
+        </config-file>
+        <!--<header-file src="src/ios/Analytics-Bridging-Header.h" />-->
+        <source-file src="src/ios/PreviewAnyFile.swift" />
+    </platform>
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="PreviewAnyFile">
+                <param name="android-package" value="com.mostafa.previewanyfile.PreviewAnyFile"/>
+            </feature>
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+        </config-file>
+        <source-file src="src/android/PreviewAnyFile.java" target-dir="src/com/mostafa/previewanyfile" />
+    </platform>
+
+    <!--<platform name="android">-->
+    <!--<config-file target="config.xml" parent="/*">-->
+    <!--<feature name="AnalyticsPlugin">-->
+    <!--<param name="ios-package" value="HWPAnalyticsPlugin"/>-->
+    <!--</feature>-->
+    <!--</config-file>-->
+    <!--<header-file src="src/ios/Analytics-Bridging-Header.h" />-->
+    <!--<source-file src="src/ios/AnalyticsPlugin.swift" />-->
+    <!--</platform>-->
+</plugin>

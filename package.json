@@ -1,0 +1,14 @@
+{
+    "name": "cordova-plugin-preview-any-file",
+    "version": "0.1.0",
+    "description": "Plugin to preview any file in native mode by providing the local or external URL",
+    "cordova": {
+        "id": "cordova-plugin-preview-any-file",
+        "platforms": [
+            "ios"
+        ]
+    },
+    "keywords": [],
+    "author": "Mostafa Mansour <mostafa@outlook.kr>",
+    "license": "MIT"
+}
