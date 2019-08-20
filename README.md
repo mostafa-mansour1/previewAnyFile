@@ -6,7 +6,7 @@ If the source file is base64 string, you must write it into file by *[cordova fi
 # How it work
 
 # For IOS
-Using ios built in class [QLPreviewController](https://developer.apple.com/documentation/quicklook/qlpreviewcontroller),
+Using the built-in class [QLPreviewController](https://developer.apple.com/documentation/quicklook/qlpreviewcontroller),
 A QLPreviewController can display previews for the following items:
 - iWork documents
 - Microsoft Office documents (Office ‘97 and newer)
