@@ -1,7 +1,7 @@
 # Preview Any File
 Cordova Plugin to preview any file in native mode by providing the local or external URL.
 
-If the source file is base64 string, you must write it into file by *cordova file plugin*
+If the source file is base64 string, you must write it into file by *[cordova file plugin](https://github.com/apache/cordova-plugin-file)*
 
 # Install
 
@@ -15,10 +15,14 @@ use this code to preview the file, it's mandatory to provide the correct extensi
 file://filepath/filename.ext
 
 ```
- PreviewAnyFile.preview(link);
+ PreviewAnyFile.preview("file://filepath/filename.ext");
 ```
 
-for ionic projects add in the top of file 
+```
+ PreviewAnyFile.preview("http://www.africau.edu/images/default/sample.pdf");
+```
+
+for ionic projects declare the plugin in the top of file 
 
 ```
 declare var PreviewAnyFile: any;
