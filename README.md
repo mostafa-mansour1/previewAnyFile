@@ -6,7 +6,7 @@ If the source file is base64 string, you must write it into file by *[cordova fi
 # Install
 
 ```
-$ ionic cordova plugin add https://github.com/kareem289/previewAnyFile.git
+$ ionic cordova plugin add https://github.com/mostafa-mansour1/previewAnyFile.git
 ```
 
 ## Usage
