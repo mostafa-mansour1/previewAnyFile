@@ -1,7 +1,7 @@
 {
     "name": "cordova-plugin-preview-any-file",
-    "version": "0.1.1",
-    "description": "Plugin to preview any file in native mode by providing the local or external URL",
+    "version": "0.1.2",
+    "description": "Plugin to preview any file type in native mode by providing the local or external URL",
     "cordova": {
         "id": "cordova-plugin-preview-any-file",
         "platforms": [

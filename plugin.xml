@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-preview-any-file" version="0.1.0">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-preview-any-file" version="0.1.2">
     <name>PreviewAnyFile</name>
     <description>Plugin to preview any file in native mode by providing the local or external URL</description>
-    <license>Apache 2.0</license>
+    <license>MIT</license>
     <keywords>cordova,device</keywords>
     <js-module src="www/preview.js" name="PreviewAnyFile">
         <clobbers target="window.PreviewAnyFile" />
