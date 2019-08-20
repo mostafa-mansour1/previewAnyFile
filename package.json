@@ -8,7 +8,16 @@
             "ios"
         ]
     },
-    "keywords": [],
+    "keywords": [
+        "ecosystem:cordova",
+        "cordova-android",
+        "cordova-ios",
+        "view document",
+        "pdf",
+        "doc",
+        "docx",
+        "cordova document"
+    ],
     "author": "Mostafa Mansour <mostafa@outlook.kr>",
     "license": "MIT"
 }
