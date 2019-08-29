@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-preview-any-file",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Plugin to preview any file type in native mode by providing the local or external URL",
     "cordova": {
         "id": "cordova-plugin-preview-any-file",
@@ -16,6 +16,7 @@
         "pdf",
         "doc",
         "docx",
+        "cordova zip",
         "cordova document"
     ],
     "author": "Mostafa Mansour <mostafa@outlook.kr>",

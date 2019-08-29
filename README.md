@@ -1,7 +1,9 @@
 # Preview Any File
-Cordova Plugin to preview any file in native mode by providing the local or external URL.
+Whatever the file id PDF document, Word document, Excel, office document, archive file, image, text, html or anything else, you can perform a preview by this awesome cordova Plugin to preview any file in native mode by providing the local or external URL.
 
 If the source file is base64 string, you must write it into file by *[cordova file plugin](https://github.com/apache/cordova-plugin-file)*
+
+the input path file must end with a valid extension
 
 # How it work
 
@@ -40,11 +42,37 @@ Use this code to preview the file, it's mandatory to provide the correct extensi
 file://filepath/filename.ext
 
 ```
- PreviewAnyFile.preview("file://filepath/filename.ext");
+ PreviewAnyFile.preview("file://filepath/filename.ext",
+    function(win){ 
+        if (win) {
+            console.log('success') 
+        }else{
+            console.log('error')    
+        }
+     }, 
+      function(err){
+           console.log('err',err)     
+     }
+     
+ );
 ```
 
+you can use external link, the preview will not opened until the file downloaded successfully, so present loader before call the function then dismiss it in call back 
 ```
- PreviewAnyFile.preview("http://www.africau.edu/images/default/sample.pdf");
+// add your code here  to show loader
+ PreviewAnyFile.preview("http://www.africau.edu/images/default/sample.pdf",
+    function(win){ 
+        if (win) {
+            console.log('success') 
+        }else{
+            console.log('error')    
+        }
+        // then dismiss the loader
+     }, 
+      function(err){
+           console.log('err',err)   
+            // then dismiss the loader  
+     });
 ```
 
 for ionic projects declare the plugin in the top of file 
@@ -57,6 +85,18 @@ declare var PreviewAnyFile: any;
 - Android
 - iOS
 
+## Change Log
+-- version 0.1.3
+
+- (IOS) fix issue when provide a path of the file not the url , now it accept path that start with "/" or url start with "file://"
+- (IOS) fix issue if open external link more then one time
+- (IOS, Android) fix call back
+
+-- version 0.1.2
+* update readme to add documentation 
+
+-- version 0.1.1
+* initial the plugin
 
 ## TO DO
 * add ionic wrapper
