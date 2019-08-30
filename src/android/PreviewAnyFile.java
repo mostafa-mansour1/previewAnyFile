@@ -11,6 +11,8 @@ import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.net.URLEncoder;
+
 public class PreviewAnyFile extends CordovaPlugin {
 
   private CallbackContext callbackContext; // The callback context from which we were invoked.
@@ -37,9 +39,14 @@ public class PreviewAnyFile extends CordovaPlugin {
 
     boolean file_presented = false;
     String error = null;
+
     Uri uri = Uri.parse(url);
     Intent intent = new Intent(Intent.ACTION_VIEW);
-    String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+    String safeURl = url.toLowerCase();
+    String extension = MimeTypeMap.getFileExtensionFromUrl(safeURl);
+    if (extension == "") {
+      extension = safeURl.substring(safeURl.lastIndexOf(".") + 1);
+    }
     String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
     if (mimeType == null) {
       try {
@@ -65,7 +72,7 @@ public class PreviewAnyFile extends CordovaPlugin {
     }
 
     if (file_presented) {
-      callbackContext.success();
+      callbackContext.success("SUCCESS");
     } else {
       callbackContext.error(error);
     }

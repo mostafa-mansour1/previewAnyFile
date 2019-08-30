@@ -21,7 +21,7 @@ import QuickLook
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
                             status: CDVCommandStatus_OK,
-                            messageAs: true
+                            messageAs: "SUCCESS"
                         );
                         self.commandDelegate!.send(
                             pluginResult,
@@ -30,8 +30,8 @@ import QuickLook
                     }
                     else{
                         pluginResult = CDVPluginResult(
-                            status: CDVCommandStatus_OK,
-                            messageAs: false
+                            status: CDVCommandStatus_ERROR,
+                            messageAs: "FAILED"
                         );
                         self.commandDelegate!.send(
                             pluginResult,
