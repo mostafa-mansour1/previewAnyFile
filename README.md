@@ -41,6 +41,10 @@ the file path in android must be absolute path to the file starting with file://
 ```
 $ cordova plugin add cordova-plugin-preview-any-file --save
 ```
+for ionic projects 
+```
+$ ionic cordova plugin add cordova-plugin-preview-any-file --save
+```
 
 ## Usage
 
@@ -81,25 +85,25 @@ you can use external link, the preview will not opened until the file downloaded
      });
 ```
 
-for ionic projects declare the plugin in the top of file 
 
-```
-declare var PreviewAnyFile: any;
-```
 
 ## Supported platforms
 - Android
 - iOS
 
 ## Change Log
+
+-- version 0.1.5
+* (Android) Temporary fix for the issue that file not opened in SDK > 28
+
 -- version 0.1.4
-- (Android) fix issue getting the file extension
+* (Android) fix issue getting the file extension
 
 -- version 0.1.3
 
-- (IOS) fix issue when provide a path of the file not the url , now it accept path that start with "/" or url start with "file://"
-- (IOS) fix issue if open external link more then one time
-- (IOS, Android) fix call back
+* (IOS) fix issue when provide a path of the file not the url , now it accept path that start with "/" or url start with "file://"
+* (IOS) fix issue if open external link more then one time
+* (IOS, Android) fix call back
 
 -- version 0.1.2
 * update readme to add documentation 
@@ -111,5 +115,5 @@ declare var PreviewAnyFile: any;
 * cannot open https url in android
 
 ## TO DO
-* add ionic wrapper
-* support to view base64 string directly
+* add ionic wrapper  [(Done)](https://ionicframework.com/docs/native/preview-any-file)
+* support to view base64 string directly (Working on it)

@@ -13,6 +13,10 @@ import org.json.JSONException;
 
 import java.net.URLEncoder;
 
+import android.os.Build;
+import java.lang.reflect.Method;
+import android.os.StrictMode;
+
 public class PreviewAnyFile extends CordovaPlugin {
 
   private CallbackContext callbackContext; // The callback context from which we were invoked.
@@ -36,6 +40,15 @@ public class PreviewAnyFile extends CordovaPlugin {
   }
 
   private void viewFile(String url, CallbackContext callbackContext) {
+
+    if (Build.VERSION.SDK_INT >= 24) {
+      try {
+        Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
+        m.invoke(null);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
 
     boolean file_presented = false;
     String error = null;
