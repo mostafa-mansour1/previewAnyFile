@@ -36,6 +36,7 @@ public class PreviewAnyFile extends CordovaPlugin {
 
   private void presentFile(Intent intent, Uri uri, String type) {
     intent.setDataAndType(uri, type);
+    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
     this.cordova.getActivity().startActivityForResult(intent, 1);
   }
 
