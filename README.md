@@ -55,8 +55,10 @@ file://filepath/filename.ext
  PreviewAnyFile.preview("file://filepath/filename.ext",
     function(win){ 
         if (win == "SUCCESS") {
-            console.log('success') 
-        }else{
+            console.log('success')
+        } else if (win == "CLOSING") { /*currently iOS only */
+            console.log('closing')
+        } else {
             console.log('error')    
         }
      }, 
@@ -74,7 +76,9 @@ you can use external link, the preview will not opened until the file downloaded
     function(win){ 
         if (win == "SUCCESS") {
             console.log('success') 
-        }else{
+        } else if (win == "CLOSING") { /*currently iOS only */
+            console.log('closing')
+        } else {
             console.log('error')    
         }
         // then dismiss the loader
