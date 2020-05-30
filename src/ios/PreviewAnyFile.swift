@@ -2,20 +2,23 @@ import QuickLook
 //new
 @objc(HWPPreviewAnyFile) class PreviewAnyFile: CDVPlugin {
     lazy var previewItem = NSURL()
+    lazy var tempCommandId = String()
     @objc(preview:)
     func preview(_command: CDVInvokedUrlCommand){
-        
+
         var pluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
-        
+        tempCommandId = _command.callbackId;
+
         let myUrl = _command.arguments[0] as! String;
         self.downloadfile(withName: myUrl,completion: {(success, fileLocationURL, callback) in
             if success {
-                
+
                 self.previewItem = fileLocationURL! as NSURL
                 let previewController = QLPreviewController();
                 previewController.dataSource = self;
+                previewController.delegate = self;
                 DispatchQueue.main.async(execute: {
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
@@ -23,6 +26,7 @@ import QuickLook
                             status: CDVCommandStatus_OK,
                             messageAs: "SUCCESS"
                         );
+                        pluginResult?.keepCallback = true;
                         self.commandDelegate!.send(
                             pluginResult,
                             callbackId: _command.callbackId
@@ -39,7 +43,7 @@ import QuickLook
                         );
                     }
                 });
-                
+
             }else{
                 pluginResult = CDVPluginResult(
                     status: CDVCommandStatus_ERROR,
@@ -49,11 +53,11 @@ import QuickLook
                     pluginResult,
                     callbackId: _command.callbackId
                 );
-                
+
             }
         })
     }
-    
+
     func downloadfile(withName myUrl: String,completion: @escaping (_ success: Bool,_ fileLocation: URL? , _ callback : NSError?) -> Void){
         let  url = myUrl.addingPercentEncoding(withAllowedCharacters:NSCharacterSet.urlQueryAllowed)!;
         var itemUrl: URL? = Foundation.URL(string: url);
@@ -86,25 +90,30 @@ import QuickLook
                 completion(false, nil, error)
             }
         });
-        
-        
+
         downloadTask.resume();
-        
-        
-        
-        
+
     }
-    
-    
-    
+
+    func dismissPreviewCallback(){
+        print(tempCommandId)
+        let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: "CLOSING");
+        self.commandDelegate!.send(pluginResult, callbackId: tempCommandId);
+    }
+
 }
 
-extension PreviewAnyFile: QLPreviewControllerDataSource {
+extension PreviewAnyFile: QLPreviewControllerDataSource, QLPreviewControllerDelegate {
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
         return 1
     }
-    
+
     func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
         return self.previewItem as QLPreviewItem
+    }
+
+    func previewControllerWillDismiss(_ controller: QLPreviewController) {
+        self.dismissPreviewCallback();
+
     }
 }
