@@ -56,7 +56,8 @@ file://filepath/filename.ext
     function(win){ 
         if (win == "SUCCESS") {
             console.log('success')
-        } else if (win == "CLOSING") { /*currently iOS only */
+        } else if (win == "CLOSING") {
+ /*currently iOS only */
             console.log('closing')
         } else {
             console.log('error')    
@@ -76,7 +77,8 @@ you can use external link, the preview will not opened until the file downloaded
     function(win){ 
         if (win == "SUCCESS") {
             console.log('success') 
-        } else if (win == "CLOSING") { /*currently iOS only */
+        } else if (win == "CLOSING") { 
+/*currently iOS only */
             console.log('closing')
         } else {
             console.log('error')    
@@ -96,6 +98,11 @@ you can use external link, the preview will not opened until the file downloaded
 - iOS
 
 ## Change Log
+-- version 0.1.7
+* add callback when closing in IOS (thank @drewwynne0)
+
+-- version 0.1.6
+* fix minor issues
 
 -- version 0.1.5
 * (Android) Temporary fix for the issue that file not opened in SDK > 28
