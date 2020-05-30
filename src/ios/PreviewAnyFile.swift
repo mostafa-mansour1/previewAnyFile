@@ -95,7 +95,7 @@ import QuickLook
 
     }
 
-    func dismissPreview(){
+    func dismissPreviewCallback(){
         print(tempCommandId)
         let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: "CLOSING");
         self.commandDelegate!.send(pluginResult, callbackId: tempCommandId);
@@ -113,7 +113,7 @@ extension PreviewAnyFile: QLPreviewControllerDataSource, QLPreviewControllerDele
     }
 
     func previewControllerWillDismiss(_ controller: QLPreviewController) {
-        self.dismissPreview();
+        self.dismissPreviewCallback();
 
     }
 }
