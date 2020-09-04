@@ -94,8 +94,35 @@ you can use external link, the preview will not opened until the file downloaded
 ```
 
 ### View or Open file from the asset folder 
-Follow the comment in the following link
-https://github.com/mostafa-mansour1/previewAnyFile/issues/10#issuecomment-686666526
+
+The trick is to get the blob or base64 of the asset file
+
+```
+import { PreviewAnyFile } from '@ionic-native/preview-any-file/ngx';
+import { File } from '@ionic-native/File/ngx';
+import { HttpClient } from '@angular/common/http';
+```
+
+```
+constructor(
+private http: HttpClient,
+private file: File,
+private previewAnyFile: PreviewAnyFile,)
+```
+
+```
+preview(){
+    let assetPath = './assets/files/preview.pdf';
+    this.http.get(assetPath, { responseType: 'blob' }).subscribe(fileBlob => {
+      let fileName = assetPath.replace(/^.*(\\|\/|\:)/, '');
+      const writeDirectory = this.platform.is('ios') ? this.file.syncedDataDirectory : this.file.externalDataDirectory;
+      this.file.writeFile(writeDirectory, fileName, fileBlob, { replace: true }).then(fileProp => {
+        this.previewAnyFile.preview(fileProp.nativeURL);
+      })
+    });
+}
+```
+
 
 
 
