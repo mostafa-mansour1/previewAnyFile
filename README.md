@@ -51,6 +51,8 @@ $ ionic cordova plugin add cordova-plugin-preview-any-file --save
 Use this code to preview the file, it's mandatory to provide the correct extension at the last of the file path like 
 file://filepath/filename.ext
 
+# view file from the device
+
 ```
  PreviewAnyFile.preview("file://filepath/filename.ext",
     function(win){ 
@@ -69,7 +71,7 @@ file://filepath/filename.ext
      
  );
 ```
-
+# view file from an external link 
 you can use external link, the preview will not opened until the file downloaded successfully, so present loader before call the function then dismiss it in call back 
 ```
 // add your code here  to show loader
@@ -91,6 +93,8 @@ you can use external link, the preview will not opened until the file downloaded
      });
 ```
 
+# view file from the asset folder 
+follow the comment in the following link
 
 
 ## Supported platforms
