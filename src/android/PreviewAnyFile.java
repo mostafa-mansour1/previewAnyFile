@@ -132,7 +132,7 @@ public class PreviewAnyFile extends CordovaPlugin {
     if (url.startsWith("file:")) {
       File file = new File(new URI(url));
       uri = FileProvider.getUriForFile(this.cordova.getActivity(),
-          this.cordova.getActivity().getApplicationContext().getPackageName() + ".provider", file);
+          this.cordova.getActivity().getApplicationContext().getPackageName() + ".fileprovider", file);
 
     } else {
       uri = Uri.parse(url);

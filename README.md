@@ -137,6 +137,10 @@ you can use external link, the preview will not opened until the file downloaded
 
 ## Change Log
 
+-- version 0.2.1
+
+- fix compatibility with Ionic Capacitor
+
 -- version 0.2.0
 
 - (deprecated method) preview method will marked as deprecated, you have to use previewPath instead.
