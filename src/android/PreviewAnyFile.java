@@ -246,7 +246,13 @@ public class PreviewAnyFile extends CordovaPlugin {
   public void onActivityResult(int requestCode, int resultCode, Intent intent) {
     // do something with the result
     System.out.println("onActivityResult - " + requestCode + " - " + resultCode);
-    this.returnResult(Status.OK, mimeType.equalsIgnoreCase("application/*") ? "NO_APP" : "CLOSING");
+    String status = "NO_APP";
+    if (notEmpty(mimeType)) {
+      if (!mimeType.equalsIgnoreCase("application/*")) {
+        status = "CLOSING";
+      }
+    }
+    this.returnResult(Status.OK, status);
     super.onActivityResult(requestCode, resultCode, intent);
   }
 
