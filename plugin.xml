@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-preview-any-file" version="0.2.2">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-preview-any-file" version="0.2.3">
     <name>Preview Any File</name>
     <description>Cordova plugin to preview any file from any where in native mode</description>
     <license>MIT</license>
@@ -13,10 +13,9 @@
                 <param name="ios-package" value="HWPPreviewAnyFile"/>
             </feature>
         </config-file>
-        <!--<header-file src="src/ios/Analytics-Bridging-Header.h" />-->
         <source-file src="src/ios/PreviewAnyFile.swift" />
         <dependency id="cordova-plugin-add-swift-support" version="*" />
-
+        <framework src="CoreServices.framework" />
     </platform>
 
     <platform name="android">
