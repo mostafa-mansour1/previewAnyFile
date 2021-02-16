@@ -5,6 +5,7 @@ var PreviewAnyFile = function () {
 
 };
 PreviewAnyFile.prototype.preview = function ( path, successCallback, errorCallback ) {
+    console.warn( "preview method has been deprecated, kindly use previewPath, previewBase64 or previewAsset" )
     exec( successCallback, errorCallback, "PreviewAnyFile", "preview", [ path ] );
 };
 
@@ -17,6 +18,7 @@ PreviewAnyFile.prototype.previewBase64 = function ( successCallback, errorCallba
 PreviewAnyFile.prototype.previewPath = function ( successCallback, errorCallback, path, opt = {} ) {
     let name = !!opt && opt.name ? opt.name : '';
     let mimeType = !!opt && opt.mimeType ? opt.mimeType : '';
+
     exec( successCallback, errorCallback, "PreviewAnyFile", "previewPath", [ path, name, mimeType ] );
 };
 

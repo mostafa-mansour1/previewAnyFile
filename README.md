@@ -137,6 +137,10 @@ you can use external link, the preview will not opened until the file downloaded
 
 ## Change Log
 
+-- version 0.2.3
+
+- (IOS) add CoreServices.framework to prevent build issues
+
 -- version 0.2.2
 
 - (Android) prevent application crashing on null
