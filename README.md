@@ -46,7 +46,10 @@ the file path in android must be absolute path to the file starting with file://
 $ cordova plugin add cordova-plugin-preview-any-file --save
 ```
 
-for ionic projects [(How to use in ionic project)](https://ionicframework.com/docs/native/preview-any-file)
+for ionic projects
+
+- [(How to use in ionic project)](https://ionicframework.com/docs/native/preview-any-file)
+- [(preview-any-file.zip)](https://github.com/mostafa-mansour1/previewAnyFile/files/5912855/preview-any-file.zip) as I have a pull request to add the new wrapper from 2nd Feb on ionic-native project but still didn't merged till now , so you can replace the wrapper after install from the link
 
 ```
 $ ionic cordova plugin add cordova-plugin-preview-any-file --save
