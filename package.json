@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-preview-any-file",
-    "version": "0.2.4",
+    "version": "0.2.6",
     "description": "Plugin to preview any file type from any where in native mode",
     "cordova": {
         "id": "cordova-plugin-preview-any-file",
@@ -21,5 +21,10 @@
         "cordova document"
     ],
     "author": "Mostafa Mansour <mostafa@outlook.kr>",
-    "license": "MIT"
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mostafa-mansour1/previewAnyFile.git"
+    },
+    "homepage": "https://github.com/mostafa-mansour1/previewAnyFile"
 }

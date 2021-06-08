@@ -140,6 +140,10 @@ you can use external link, the preview will not opened until the file downloaded
 
 ## Change Log
 
+-- version 0.2.6
+
+- (IOS) fix issue reported by https://github.com/Siedlerchr https://github.com/mostafa-mansour1/previewAnyFile/issues/23
+
 -- version 0.2.3
 
 - (IOS) add CoreServices.framework to prevent build issues
