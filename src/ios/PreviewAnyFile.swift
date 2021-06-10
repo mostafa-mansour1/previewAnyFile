@@ -17,10 +17,11 @@ import CoreServices
             if success {
 
                 self.previewItem = fileLocationURL! as NSURL
-                let previewController = QLPreviewController();
-                previewController.dataSource = self;
-                previewController.delegate = self;
-                DispatchQueue.main.async(execute: {
+            
+                DispatchQueue.main.async(execute: {   
+                 let previewController = QLPreviewController();
+                 previewController.dataSource = self;
+                 previewController.delegate = self;
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
