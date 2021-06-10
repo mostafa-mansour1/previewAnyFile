@@ -140,9 +140,13 @@ you can use external link, the preview will not opened until the file downloaded
 
 ## Change Log
 
+-- version 0.2.7
+
+- (IOS) fix issue reported by @Siedlerchr #26 (https://github.com/mostafa-mansour1/previewAnyFile/issues/26)
+
 -- version 0.2.6
 
-- (IOS) fix issue reported by https://github.com/Siedlerchr https://github.com/mostafa-mansour1/previewAnyFile/issues/23
+- (IOS) fix issue reported by @Siedlerchr #23 (https://github.com/mostafa-mansour1/previewAnyFile/issues/23)
 
 -- version 0.2.3
 
