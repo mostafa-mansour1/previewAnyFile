@@ -1,28 +1,142 @@
+import Cordova
 import QuickLook
 import CoreServices
 //new
+let IPAD_PREVIEW_TOOLBAR_HEIGHT = 80;
+let IPHONE_PREVIEW_TOOLBAR_HEIGHT_PORTRAIT = 60;
+let IPHONE_PREVIEW_TOOLBAR_HEIGHT_LANDSCAPE = 60;
+let CLOSE_TEXT = "Close";
+
+class PreviewOptions: NSObject{
+    let closeButtonText: String = CLOSE_TEXT;
+  override  init() {
+        super.init();
+    }
+   
+}
+
+class PreviewNavigationController: UINavigationController {
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+     }
+    
+ 
+    override func viewDidLayoutSubviews() {
+        self.resetToolbarNavbar();
+        self.setIpadToolbarBackground();
+       
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewWillAppear(animated);
+        if let controller = viewControllers.first {
+            controller.navigationItem.leftBarButtonItem = UIBarButtonItem();
+            controller.navigationItem.titleView = UIView();
+         }
+        self.resetToolbarNavbar();
+        self.setIpadToolbarBackground();
+    }
+ 
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning();
+    }
+    
+    private func resetToolbarNavbar(){
+        self.setToolbarHidden(false, animated: false);
+        self.setNavigationBarHidden(true, animated: false);
+    }
+    
+    private func setIpadToolbarBackground(){
+        if(UIDevice.current.userInterfaceIdiom == .pad){
+            if #available(iOS 13, *) {
+                self.toolbar.backgroundColor = UIColor.systemBackground;
+             } else {
+                self.toolbar.backgroundColor = UIColor.white;
+             }
+        }
+    }
+}
+
+ 
+extension Notification.Name {
+    static let didCloseButtonTap = Notification.Name("didCloseButtonTap")
+}
+
+class PreviewControllerToolbar: UIToolbar {
+    public static var CLOSE_BUTTON_TEXT: String = CLOSE_TEXT;
+    @objc(doneButtonTapped)
+     func doneButtonTapped() -> Void {
+        NotificationCenter.default.post(name: .didCloseButtonTap, object: nil);
+      }
+
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
+        var size = super.sizeThatFits(size);
+        if(UIDevice.current.userInterfaceIdiom == .pad){
+            size.height = CGFloat(IPAD_PREVIEW_TOOLBAR_HEIGHT);
+        }else{
+           if(UIDevice.current.orientation.isPortrait){
+                size.height = CGFloat(IPHONE_PREVIEW_TOOLBAR_HEIGHT_PORTRAIT);
+            }else{
+                size.height = CGFloat(IPHONE_PREVIEW_TOOLBAR_HEIGHT_LANDSCAPE);
+            }
+        }
+        return size;
+    }
+
+     override func setItems(_ items: [UIBarButtonItem]?, animated: Bool) {
+        let labelTap = UITapGestureRecognizer(target: self, action: #selector(doneButtonTapped))
+        let label = UILabel(frame: CGRect(x: 0, y: 0, width: 200, height: 70));
+        label.text = PreviewControllerToolbar.CLOSE_BUTTON_TEXT
+            label.textAlignment = .left;
+            label.sizeToFit();
+            label.textColor = UIColor.systemBlue;
+            label.isUserInteractionEnabled = true;
+            label.addGestureRecognizer(labelTap)
+        let doneButton = UIBarButtonItem(customView: label);
+        super.setItems([doneButton], animated: true)
+    }
+    
+}
+
 @objc(HWPPreviewAnyFile) class PreviewAnyFile: CDVPlugin {
     lazy var previewItem = NSURL()
     lazy var tempCommandId = String()
+    lazy  var previewNavigationController = PreviewNavigationController();
+    @objc func didCloseButtonTap(_ notification: Notification)
+    {
+        self.viewController?.dismiss(animated: true, completion:nil);
+        NotificationCenter.default.removeObserver(self, name: .didCloseButtonTap, object: nil);
+    }
+
+    
     @objc(preview:)
     func preview(_command: CDVInvokedUrlCommand){
-
+   
+        NotificationCenter.default.addObserver(self, selector: #selector(self.didCloseButtonTap), name: .didCloseButtonTap, object: nil);
         var pluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
         tempCommandId = _command.callbackId;
 
         let myUrl = _command.arguments[0] as! String;
-        self.downloadfile(withName: myUrl,fileName: "",completion: {(success, fileLocationURL, callback) in
+        let options = _command.arguments[1] as! NSDictionary;
+        PreviewControllerToolbar.CLOSE_BUTTON_TEXT = options["closeButtonText"] != nil ?  options["closeButtonText"]  as! String : CLOSE_TEXT;
+         self.downloadfile(withName: myUrl,fileName: "",completion: {(success, fileLocationURL, callback) in
             if success {
-
                 self.previewItem = fileLocationURL! as NSURL
-            
-                DispatchQueue.main.async(execute: {   
-                 let previewController = QLPreviewController();
+                let previewController = QLPreviewController();
                  previewController.dataSource = self;
-                 previewController.delegate = self;
-                    self.viewController?.present(previewController, animated: true, completion: nil);
+                previewController.delegate = self;
+                previewController.navigationItem.rightBarButtonItem = UIBarButtonItem();
+                previewController.navigationItem.titleView = UIView();
+                let previewNavigationController = PreviewNavigationController(navigationBarClass: nil, toolbarClass: PreviewControllerToolbar.self);
+                previewNavigationController.setViewControllers([previewController], animated: false)
+                previewNavigationController.modalPresentationStyle = .fullScreen;
+
+                DispatchQueue.main.async(execute: {
+                    self.viewController?.present(previewNavigationController, animated: true, completion: {});
+                   
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
                             status: CDVCommandStatus_OK,
