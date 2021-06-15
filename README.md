@@ -8,7 +8,7 @@ From version 0.2.0, you can overwrite the file name or its mime type, if the fil
 
 you can find the project at github
 
-https://github.com/mostafa-mansour1/previewAnyFile
+https://github.com/mobiliarmad/previewAnyFile
 
 # How it work
 
@@ -43,16 +43,16 @@ the file path in android must be absolute path to the file starting with file://
 # Install
 
 ```
-$ cordova plugin add cordova-plugin-preview-any-file --save
+$ cordova plugin add @capacitor-mobi/cordova-plugin-preview-any-file --save
 ```
 
 for ionic projects
 
 - [(How to use in ionic project)](https://ionicframework.com/docs/native/preview-any-file)
-- [(preview-any-file.zip)](https://github.com/mostafa-mansour1/previewAnyFile/files/5912855/preview-any-file.zip) as I have a pull request to add the new wrapper from 2nd Feb on ionic-native project but still didn't merged till now , so you can replace the wrapper after install from the link
+- [(preview-any-file.zip)](https://github.com/mobiliarmad/previewAnyFile/files/5912855/preview-any-file.zip) as I have a pull request to add the new wrapper from 2nd Feb on ionic-native project but still didn't merged till now , so you can replace the wrapper after install from the link
 
 ```
-$ ionic cordova plugin add cordova-plugin-preview-any-file --save
+$ ionic cordova plugin add @capacitor-mobi/cordova-plugin-preview-any-file --save
 ```
 
 ## Usage
@@ -142,11 +142,11 @@ you can use external link, the preview will not opened until the file downloaded
 
 -- version 0.2.7
 
-- (IOS) fix issue reported by @Siedlerchr #26 (https://github.com/mostafa-mansour1/previewAnyFile/issues/26)
+- (IOS) fix issue reported by @Siedlerchr #26 (https://github.com/mobiliarmad/previewAnyFile/issues/26)
 
 -- version 0.2.6
 
-- (IOS) fix issue reported by @Siedlerchr #23 (https://github.com/mostafa-mansour1/previewAnyFile/issues/23)
+- (IOS) fix issue reported by @Siedlerchr #23 (https://github.com/mobiliarmad/previewAnyFile/issues/23)
 
 -- version 0.2.3
 

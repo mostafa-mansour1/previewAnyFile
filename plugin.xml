@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="cordova-plugin-preview-any-file" version="0.2.7">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="@capacitor-mobi/cordova-plugin-preview-any-file" version="0.2.7">
     <name>Preview Any File</name>
+    <repo>https://github.com/mobiliarmad/previewAnyFile</repo>
+    <issue>https://github.com/mobiliarmad/previewAnyFile/issues</issue>
+
     <description>Cordova plugin to preview any file from any where in native mode</description>
     <license>MIT</license>
     <keywords>cordova,device,open file, base64,</keywords>

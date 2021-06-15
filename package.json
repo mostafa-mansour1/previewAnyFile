@@ -1,9 +1,9 @@
 {
-    "name": "cordova-plugin-preview-any-file",
-    "version": "0.2.7",
+    "name": "@capacitor-mobi/cordova-plugin-preview-any-file",
+    "version": "0.2.8",
     "description": "Plugin to preview any file type from any where in native mode",
     "cordova": {
-        "id": "cordova-plugin-preview-any-file",
+        "id": "@capacitor-mobi/cordova-plugin-preview-any-file",
         "platforms": [
             "ios",
             "android"
@@ -24,7 +24,7 @@
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/mostafa-mansour1/previewAnyFile.git"
+        "url": "https://github.com/mobiliarmad/previewAnyFile.git"
     },
-    "homepage": "https://github.com/mostafa-mansour1/previewAnyFile"
+    "homepage": "https://github.com/mobiliarmad/previewAnyFile"
 }
