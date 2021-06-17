@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="@capacitor-mobi/cordova-plugin-preview-any-file" version="0.2.9">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="@capacitor-mobi/cordova-plugin-preview-any-file" version="0.2.10">
     <name>Preview Any File</name>
     <repo>https://github.com/mobiliarmad/previewAnyFile</repo>
     <issue>https://github.com/mobiliarmad/previewAnyFile/issues</issue>
