@@ -1,4 +1,5 @@
 import Cordova
+import Cordova
 import QuickLook
 import CoreServices
 //new
@@ -23,7 +24,13 @@ class PreviewNavigationController: UINavigationController {
     
  
     override func viewDidLayoutSubviews() {
-        self.resetToolbarNavbar();
+        if let controller = viewControllers.first {
+            let fullscreen =  controller.prefersStatusBarHidden;
+            if(!fullscreen){
+                self.resetToolbarNavbar();
+            }
+         }
+       
         self.setIpadToolbarBackground();
        
     }
@@ -133,7 +140,7 @@ class PreviewControllerToolbar: UIToolbar {
                 let previewNavigationController = PreviewNavigationController(navigationBarClass: nil, toolbarClass: PreviewControllerToolbar.self);
                 previewNavigationController.setViewControllers([previewController], animated: false)
                 previewNavigationController.modalPresentationStyle = .fullScreen;
-
+                
                 DispatchQueue.main.async(execute: {
                     self.viewController?.present(previewNavigationController, animated: true, completion: {});
                    
