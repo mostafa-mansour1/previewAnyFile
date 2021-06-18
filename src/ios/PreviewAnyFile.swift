@@ -1,5 +1,3 @@
-import Cordova
-import Cordova
 import QuickLook
 import CoreServices
 //new
