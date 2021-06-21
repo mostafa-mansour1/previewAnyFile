@@ -1,12 +1,19 @@
 
 var exec = require( "cordova/exec" );
-
+var closeButtonTextLocalizable = {
+    'en': 'Close',
+    'fr': 'Fermer',
+    'de': 'Schliessen',
+    'it': 'Chiudere'
+};
 var PreviewAnyFile = function () {
 
 };
 PreviewAnyFile.prototype.preview = function ( path,  successCallback, errorCallback, options = {}) {
     console.warn( "preview method has been deprecated, kindly use previewPath, previewBase64 or previewAsset" )
-    exec( successCallback, errorCallback, "PreviewAnyFile", "preview", [ path, options ] );
+    exec( successCallback, errorCallback, "PreviewAnyFile", "preview", [ path,{
+            closeButtonText: closeButtonTextLocalizable[window.currentLanguage||'en']
+    }]);
 };
 
 PreviewAnyFile.prototype.previewBase64 = function ( successCallback, errorCallback, base64, opt = {} ) {
