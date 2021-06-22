@@ -11,8 +11,10 @@ var PreviewAnyFile = function () {
 };
 PreviewAnyFile.prototype.preview = function ( path,  successCallback, errorCallback, options = {}) {
     console.warn( "preview method has been deprecated, kindly use previewPath, previewBase64 or previewAsset" )
+    var systemLanguage = navigator.language.split('-')[0];
+    var lang = window.currentLanguage || systemLanguage || 'en';
     exec( successCallback, errorCallback, "PreviewAnyFile", "preview", [ path,{
-            closeButtonText: closeButtonTextLocalizable[window.currentLanguage||'en']
+            closeButtonText: closeButtonTextLocalizable[lang]
     }]);
 };
 
