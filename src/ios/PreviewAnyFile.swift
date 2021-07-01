@@ -17,8 +17,8 @@ import CoreServices
             if success {
 
                 self.previewItem = fileLocationURL! as NSURL
-            
-                DispatchQueue.main.async(execute: {   
+
+                DispatchQueue.main.async(execute: {
                  let previewController = QLPreviewController();
                  previewController.dataSource = self;
                  previewController.delegate = self;
@@ -59,8 +59,8 @@ import CoreServices
             }
         })
     }
-    
-    
+
+
     @objc(previewPath:)
     func previewPath(_command: CDVInvokedUrlCommand){
         var pluginResult = CDVPluginResult(
@@ -72,7 +72,7 @@ import CoreServices
         let mimeType = _command.arguments[2] as! String;
         let name = _command.arguments[1] as! String;
         var fileName = "";
-        
+
         if(!name.isEmpty){
             fileName = name
         }else if(!mimeType.isEmpty){
@@ -86,10 +86,11 @@ import CoreServices
             if success {
 
                 self.previewItem = fileLocationURL! as NSURL
-                let previewController = QLPreviewController();
-                previewController.dataSource = self;
-                previewController.delegate = self;
+
                 DispatchQueue.main.async(execute: {
+                 let previewController = QLPreviewController();
+                 previewController.dataSource = self;
+                 previewController.delegate = self;
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
@@ -127,11 +128,11 @@ import CoreServices
             }
         })
     }
-    
-    
+
+
     @objc(previewBase64:)
     func previewBase64(_command: CDVInvokedUrlCommand){
-       
+
         var pluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
@@ -141,7 +142,7 @@ import CoreServices
         var mimeType = _command.arguments[2] as! String;
         let name = _command.arguments[1] as! String;
         var fileName = "";
-        
+
         if(base64String.isEmpty){
             pluginResult = CDVPluginResult(
                 status: CDVCommandStatus_ERROR,
@@ -157,7 +158,7 @@ import CoreServices
             base64String = baseTmp[1];
             mimeType = baseTmp[0].replacingOccurrences(of: "data:",with: "").replacingOccurrences(of: ";base64",with: "");
         }
-        
+
         if(name.isEmpty && mimeType.isEmpty){
             pluginResult = CDVPluginResult(
                 status: CDVCommandStatus_ERROR,
@@ -169,7 +170,7 @@ import CoreServices
             );
             return;
         }
-        
+
         if(!name.isEmpty){
             fileName = name
         }else if(!mimeType.isEmpty){
@@ -178,7 +179,7 @@ import CoreServices
                 ext = NewExt!.takeRetainedValue() as String;
                 fileName = "file."+ext;
         }
-        
+
         guard
             var documentsURL = (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)).last,
             let convertedData = Data(base64Encoded: base64String)
@@ -191,7 +192,7 @@ import CoreServices
                 pluginResult,
                 callbackId: _command.callbackId
             );
-        
+
             //handle error when getting documents URL
             return
         }
@@ -212,15 +213,16 @@ import CoreServices
         }
 
         let myUrl:String = documentsURL.absoluteString;
-        
+
         self.downloadfile(withName: myUrl,fileName: fileName,completion: {(success, fileLocationURL, callback) in
             if success {
 
                 self.previewItem = fileLocationURL! as NSURL
-                let previewController = QLPreviewController();
-                previewController.dataSource = self;
-                previewController.delegate = self;
+
                 DispatchQueue.main.async(execute: {
+                 let previewController = QLPreviewController();
+                 previewController.dataSource = self;
+                 previewController.delegate = self;
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
@@ -257,13 +259,13 @@ import CoreServices
 
             }
         })
-        
+
     }
 
     func downloadfile(withName myUrl: String,fileName:String,completion: @escaping (_ success: Bool,_ fileLocation: URL? , _ callback : NSError?) -> Void){
         let  url = myUrl.addingPercentEncoding(withAllowedCharacters:NSCharacterSet.urlQueryAllowed)!;
         var itemUrl: URL? = Foundation.URL(string: url);
-       
+
         if FileManager.default.fileExists(atPath: itemUrl!.path) {
 
             if(itemUrl?.scheme == nil){
@@ -271,7 +273,7 @@ import CoreServices
             }
             return completion(true, itemUrl,nil)
         }
-        
+
         let documentsDirectoryURL =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         var disFileName = "";
         if(fileName.isEmpty){
@@ -280,7 +282,7 @@ import CoreServices
             disFileName = fileName;
         }
         let destinationUrl = documentsDirectoryURL.appendingPathComponent(disFileName);
-    
+
         if FileManager.default.fileExists(atPath: destinationUrl.path) {
             do {
                 try FileManager.default.removeItem(at: destinationUrl)
