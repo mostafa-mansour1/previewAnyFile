@@ -266,6 +266,11 @@ import CoreServices
         let  url = myUrl.addingPercentEncoding(withAllowedCharacters:NSCharacterSet.urlQueryAllowed)!;
         var itemUrl: URL? = Foundation.URL(string: url);
 
+       //if the file not exist by read the url, so try again to get the file by reading base64 string
+        if !FileManager.default.fileExists(atPath: itemUrl!.path) {
+                   itemUrl = Foundation.URL(string: myUrl);
+        }
+        
         if FileManager.default.fileExists(atPath: itemUrl!.path) {
 
             if(itemUrl?.scheme == nil){
