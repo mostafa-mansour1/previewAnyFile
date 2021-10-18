@@ -268,7 +268,7 @@ import CoreServices
 
        //if the file not exist by read the url, so try again to get the file by reading base64 string
         if !FileManager.default.fileExists(atPath: itemUrl!.path) {
-                   itemUrl = Foundation.URL(string: myUrl);
+                   itemUrl = Foundation.URL(string: url);
         }
         
         if FileManager.default.fileExists(atPath: itemUrl!.path) {
