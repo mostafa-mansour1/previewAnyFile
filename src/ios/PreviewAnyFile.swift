@@ -1,3 +1,4 @@
+import Cordova
 import QuickLook
 import CoreServices
 //new
@@ -11,47 +12,33 @@ class PreviewOptions: NSObject{
   override  init() {
         super.init();
     }
-   
+
 }
 
 class PreviewNavigationController: UINavigationController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
      }
-    
- 
+
     override func viewDidLayoutSubviews() {
-        if let controller = viewControllers.first {
-            let fullscreen =  controller.prefersStatusBarHidden;
-            if(!fullscreen){
-                self.resetToolbarNavbar();
-            }
-         }
-       
+        self.setNavigationBarHidden(true, animated: false);
         self.setIpadToolbarBackground();
-       
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
-        if let controller = viewControllers.first {
-            controller.navigationItem.leftBarButtonItem = UIBarButtonItem();
-            controller.navigationItem.titleView = UIView();
-         }
-        self.resetToolbarNavbar();
+        self.setToolbarHidden(false, animated: false);
+        self.setNavigationBarHidden(true, animated: false);
+
         self.setIpadToolbarBackground();
     }
- 
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning();
     }
-    
-    private func resetToolbarNavbar(){
-        self.setToolbarHidden(false, animated: false);
-        self.setNavigationBarHidden(true, animated: false);
-    }
-    
+
     private func setIpadToolbarBackground(){
         if(UIDevice.current.userInterfaceIdiom == .pad){
             if #available(iOS 13, *) {
@@ -63,7 +50,7 @@ class PreviewNavigationController: UINavigationController {
     }
 }
 
- 
+
 extension Notification.Name {
     static let didCloseButtonTap = Notification.Name("didCloseButtonTap")
 }
@@ -101,7 +88,7 @@ class PreviewControllerToolbar: UIToolbar {
         let doneButton = UIBarButtonItem(customView: label);
         super.setItems([doneButton], animated: true)
     }
-    
+
 }
 
 @objc(HWPPreviewAnyFile) class PreviewAnyFile: CDVPlugin {
@@ -114,10 +101,10 @@ class PreviewControllerToolbar: UIToolbar {
         NotificationCenter.default.removeObserver(self, name: .didCloseButtonTap, object: nil);
     }
 
-    
+
     @objc(preview:)
     func preview(_command: CDVInvokedUrlCommand){
-   
+
         NotificationCenter.default.addObserver(self, selector: #selector(self.didCloseButtonTap), name: .didCloseButtonTap, object: nil);
         var pluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
