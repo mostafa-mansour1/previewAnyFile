@@ -430,8 +430,13 @@ extension PreviewAnyFile: QLPreviewControllerDataSource, QLPreviewControllerDele
         return self.previewItem as QLPreviewItem
     }
 
+    @available(iOS 13.0, *)
+    func previewController(_ controller: QLPreviewController, editingModeFor previewItem: QLPreviewItem
+    ) -> QLPreviewItemEditingMode {
+        .disabled
+    }
+
     func previewControllerWillDismiss(_ controller: QLPreviewController) {
         self.dismissPreviewCallback();
-
     }
 }
