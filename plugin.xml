@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="@capacitor-mobi/cordova-plugin-preview-any-file" version="0.2.14">
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" id="@capacitor-mobi/cordova-plugin-preview-any-file" version="0.2.15">
     <name>Preview Any File</name>
     <repo>https://github.com/mobiliarmad/previewAnyFile</repo>
     <issue>https://github.com/mobiliarmad/previewAnyFile/issues</issue>
@@ -13,7 +13,7 @@
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="PreviewAnyFile">
-                <param name="ios-package" value="HWPPreviewAnyFile"/>
+                <param name="ios-package" value="HWPPreviewAnyFile" />
             </feature>
         </config-file>
         <source-file src="src/ios/PreviewAnyFile.swift" />
@@ -26,12 +26,12 @@
         <dependency id="cordova-plugin-androidx-adapter" version="*" />
         <config-file target="config.xml" parent="/*">
             <platform name="android">
-                <preference name="AndroidXEnabled" value="true"/>
+                <preference name="AndroidXEnabled" value="true" />
             </platform>
         </config-file>
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="PreviewAnyFile">
-                <param name="android-package" value="com.mostafa.previewanyfile.PreviewAnyFile"/>
+                <param name="android-package" value="com.mostafa.previewanyfile.PreviewAnyFile" />
             </feature>
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/*">
@@ -44,7 +44,7 @@
                 <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
             </provider>
         </config-file>
-        <source-file src="src/android/xml/file_paths.xml" target-dir="res/xml"/>
+        <source-file src="src/android/xml/file_paths.xml" target-dir="res/xml" />
 
         <framework src="androidx.appcompat:appcompat:+" />
 
