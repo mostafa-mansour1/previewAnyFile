@@ -23,12 +23,16 @@ class PreviewNavigationController: UINavigationController {
      }
 
     override func viewDidLayoutSubviews() {
-        self.setNavigationBarHidden(true, animated: false);
-        self.setIpadToolbarBackground();
+        self.resetToolbarNavbar();
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewWillAppear(animated);
+
+        self.resetToolbarNavbar();
+    }
+
+    private func resetToolbarNavbar(){
         self.setToolbarHidden(false, animated: false);
         self.setNavigationBarHidden(true, animated: false);
 
