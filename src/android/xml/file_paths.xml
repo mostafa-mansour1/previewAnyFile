@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-path name="my_images" path="." />
-    <external-files-path name="cache_files" path="/" />
-    <cache-path name="cache_files" path="/" />
+    <!-- cordova.file.dataDirectory -->
+    <files-path name="files" path="." />
+    <!-- cordova.file.cacheDirectory -->
+    <cache-path name="cache" path="." />
+    <!-- cordova.file.externalDataDirectory -->
+    <external-files-path name="external-files" path="." />
+    <!-- cordova.file.externalCacheDirectory -->
+    <external-cache-path name="external-cache" path="." />
+    <!-- cordova.file.externalRootDirectory -->
+    <external-path name="external" path="." />
 </paths>
