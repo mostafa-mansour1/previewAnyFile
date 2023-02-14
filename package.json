@@ -1,6 +1,6 @@
 {
     "name": "@capacitor-mobi/cordova-plugin-preview-any-file",
-    "version": "0.2.17",
+    "version": "0.2.18",
     "description": "Plugin to preview any file type from any where in native mode",
     "cordova": {
         "id": "@capacitor-mobi/cordova-plugin-preview-any-file",

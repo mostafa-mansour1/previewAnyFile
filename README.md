@@ -140,6 +140,14 @@ you can use external link, the preview will not opened until the file downloaded
 
 ## Change Log
 
+-- version 0.2.9
+
+- (Android) fix Android AppCompat version to 1.3.1 #37 (https://github.com/mostafa-mansour1/previewAnyFile/issues/37)
+
+-- version 0.2.8
+
+- (IOS) fix issue some base64 not preview if it has the full mimetype
+
 -- version 0.2.7
 
 - (IOS) fix issue reported by @Siedlerchr #26 (https://github.com/mobiliarmad/previewAnyFile/issues/26)

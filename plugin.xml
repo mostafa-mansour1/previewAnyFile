@@ -46,7 +46,7 @@
         </config-file>
         <source-file src="src/android/xml/file_paths.xml" target-dir="res/xml" />
 
-        <framework src="androidx.appcompat:appcompat:+" />
+        <framework src="androidx.appcompat:appcompat:1.3.1" />
 
     </platform>
 </plugin>
