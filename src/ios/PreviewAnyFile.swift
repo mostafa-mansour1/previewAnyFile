@@ -1,205 +1,44 @@
-import Cordova
 import QuickLook
 import CoreServices
+
+
+class MobiUINavigationItem: UINavigationItem {
+    override func setRightBarButtonItems(_ items: [UIBarButtonItem]?, animated: Bool) {
+        // forbidden to add anything to right
+    }
+}
+
+class MobiCustomPreviewController: QLPreviewController, QLPreviewControllerDelegate {
+    
+    private let item = MobiUINavigationItem(title: "")
+
+    override var navigationItem: UINavigationItem {
+        get { return item }
+    }
+}
+
 //new
-let IPAD_PREVIEW_TOOLBAR_HEIGHT = 80;
-let IPHONE_PREVIEW_TOOLBAR_HEIGHT_PORTRAIT = 60;
-let IPHONE_PREVIEW_TOOLBAR_HEIGHT_LANDSCAPE = 60;
-let CLOSE_TEXT = "Close";
-
-class PreviewOptions: NSObject{
-    let closeButtonText: String = CLOSE_TEXT;
-  override  init() {
-        super.init();
-    }
-
-}
-
-class PreviewNavigationController: UINavigationController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-     }
-
-    override func viewDidLayoutSubviews() {
-        self.resetToolbarNavbar();
-    }
-
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewWillAppear(animated);
-
-        self.resetToolbarNavbar();
-    }
-
-    private func resetToolbarNavbar(){
-        self.setToolbarHidden(false, animated: false);
-        self.setNavigationBarHidden(true, animated: false);
-
-        self.setIpadToolbarBackground();
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning();
-    }
-
-    private func setIpadToolbarBackground(){
-        if(UIDevice.current.userInterfaceIdiom == .pad){
-            if #available(iOS 13, *) {
-                self.toolbar.backgroundColor = UIColor.systemBackground;
-             } else {
-                self.toolbar.backgroundColor = UIColor.white;
-             }
-        }
-    }
-}
-
-
-extension Notification.Name {
-    static let didCloseButtonTap = Notification.Name("didCloseButtonTap")
-}
-
-class PreviewControllerToolbar: UIToolbar {
-    public static var CLOSE_BUTTON_TEXT: String = CLOSE_TEXT;
-    @objc(doneButtonTapped)
-     func doneButtonTapped() -> Void {
-        NotificationCenter.default.post(name: .didCloseButtonTap, object: nil);
-      }
-
-    override func sizeThatFits(_ size: CGSize) -> CGSize {
-        var size = super.sizeThatFits(size);
-        if(UIDevice.current.userInterfaceIdiom == .pad){
-            size.height = CGFloat(IPAD_PREVIEW_TOOLBAR_HEIGHT);
-        }else{
-           if(UIDevice.current.orientation.isPortrait){
-                size.height = CGFloat(IPHONE_PREVIEW_TOOLBAR_HEIGHT_PORTRAIT);
-            }else{
-                size.height = CGFloat(IPHONE_PREVIEW_TOOLBAR_HEIGHT_LANDSCAPE);
-            }
-        }
-        return size;
-    }
-
-     override func setItems(_ items: [UIBarButtonItem]?, animated: Bool) {
-        let labelTap = UITapGestureRecognizer(target: self, action: #selector(doneButtonTapped))
-        let label = UILabel(frame: CGRect(x: 0, y: 0, width: 200, height: 70));
-        label.text = PreviewControllerToolbar.CLOSE_BUTTON_TEXT
-            label.textAlignment = .left;
-            label.sizeToFit();
-            label.textColor = UIColor.systemBlue;
-            label.isUserInteractionEnabled = true;
-            label.addGestureRecognizer(labelTap)
-        let doneButton = UIBarButtonItem(customView: label);
-        super.setItems([doneButton], animated: true)
-    }
-
-}
-
 @objc(HWPPreviewAnyFile) class PreviewAnyFile: CDVPlugin {
     lazy var previewItem = NSURL()
     lazy var tempCommandId = String()
-    lazy  var previewNavigationController = PreviewNavigationController();
-    @objc func didCloseButtonTap(_ notification: Notification)
-    {
-        self.viewController?.dismiss(animated: true, completion:nil);
-        NotificationCenter.default.removeObserver(self, name: .didCloseButtonTap, object: nil);
-    }
-
-
     @objc(preview:)
     func preview(_command: CDVInvokedUrlCommand){
 
-        NotificationCenter.default.addObserver(self, selector: #selector(self.didCloseButtonTap), name: .didCloseButtonTap, object: nil);
         var pluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
         tempCommandId = _command.callbackId;
 
         let myUrl = _command.arguments[0] as! String;
-        let options = _command.arguments[1] as! NSDictionary;
-        PreviewControllerToolbar.CLOSE_BUTTON_TEXT = options["closeButtonText"] != nil ?  options["closeButtonText"]  as! String : CLOSE_TEXT;
-         self.downloadfile(withName: myUrl,fileName: "",completion: {(success, fileLocationURL, callback) in
+        self.downloadfile(withName: myUrl,fileName: "",completion: {(success, fileLocationURL, callback) in
             if success {
+
                 self.previewItem = fileLocationURL! as NSURL
-                let previewController = QLPreviewController();
+
+                DispatchQueue.main.async(execute: {
+                 let previewController = QLPreviewController();
                  previewController.dataSource = self;
-                previewController.delegate = self;
-                previewController.navigationItem.rightBarButtonItem = UIBarButtonItem();
-                previewController.navigationItem.titleView = UIView();
-                let previewNavigationController = PreviewNavigationController(navigationBarClass: nil, toolbarClass: PreviewControllerToolbar.self);
-                previewNavigationController.setViewControllers([previewController], animated: false)
-                previewNavigationController.modalPresentationStyle = .fullScreen;
-                
-                DispatchQueue.main.async(execute: {
-                    self.viewController?.present(previewNavigationController, animated: true, completion: {});
-                   
-                    if self.viewController!.isViewLoaded {
-                        pluginResult = CDVPluginResult(
-                            status: CDVCommandStatus_OK,
-                            messageAs: "SUCCESS"
-                        );
-                        pluginResult?.keepCallback = true;
-                        self.commandDelegate!.send(
-                            pluginResult,
-                            callbackId: _command.callbackId
-                        );
-                    }
-                    else{
-                        pluginResult = CDVPluginResult(
-                            status: CDVCommandStatus_ERROR,
-                            messageAs: "FAILED"
-                        );
-                        self.commandDelegate!.send(
-                            pluginResult,
-                            callbackId: _command.callbackId
-                        );
-                    }
-                });
-
-            }else{
-                pluginResult = CDVPluginResult(
-                    status: CDVCommandStatus_ERROR,
-                    messageAs: callback?.localizedDescription
-                );
-                self.commandDelegate!.send(
-                    pluginResult,
-                    callbackId: _command.callbackId
-                );
-
-            }
-        })
-    }
-    
-    
-    @objc(previewPath:)
-    func previewPath(_command: CDVInvokedUrlCommand){
-        var pluginResult = CDVPluginResult(
-            status: CDVCommandStatus_ERROR
-        )
-        tempCommandId = _command.callbackId;
-        var ext:String = "";
-        let myUrl = _command.arguments[0] as! String;
-        let mimeType = _command.arguments[2] as! String;
-        let name = _command.arguments[1] as! String;
-        var fileName = "";
-        
-        if(!name.isEmpty){
-            fileName = name
-        }else if(!mimeType.isEmpty){
-            let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType as CFString, nil);
-            let NewExt = UTTypeCopyPreferredTagWithClass((uti?.takeRetainedValue())!, kUTTagClassFilenameExtension);
-                ext = NewExt!.takeRetainedValue() as String;
-                fileName = "file."+ext;
-        }
-
-        self.downloadfile(withName: myUrl,fileName: fileName,completion: {(success, fileLocationURL, callback) in
-            if success {
-
-                self.previewItem = fileLocationURL! as NSURL
-                let previewController = QLPreviewController();
-                previewController.dataSource = self;
-                previewController.delegate = self;
-                DispatchQueue.main.async(execute: {
+                 previewController.delegate = self;
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
@@ -237,11 +76,87 @@ class PreviewControllerToolbar: UIToolbar {
             }
         })
     }
+
+
+    @objc(previewPath:)
+    func previewPath(_command: CDVInvokedUrlCommand){
+        var pluginResult = CDVPluginResult(
+            status: CDVCommandStatus_ERROR
+        )
+        tempCommandId = _command.callbackId;
+        var ext:String = "";
+        let myUrl = _command.arguments[0] as! String;
+        let mimeType = _command.arguments[2] as! String;
+        let name = _command.arguments[1] as! String;
+        var fileName = "";
+
+        if(!name.isEmpty){
+            fileName = name
+        }else if(!mimeType.isEmpty){
+            let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType as CFString, nil);
+            let NewExt = UTTypeCopyPreferredTagWithClass((uti?.takeRetainedValue())!, kUTTagClassFilenameExtension);
+                ext = NewExt!.takeRetainedValue() as String;
+                fileName = "file."+ext;
+        }
+
+        self.downloadfile(withName: myUrl,fileName: fileName,completion: {(success, fileLocationURL, callback) in
+            if success {
+
+                self.previewItem = fileLocationURL! as NSURL
+
+                DispatchQueue.main.async(execute: {
+                 let previewController = MobiCustomPreviewController();
+                    previewController.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(self.closePreview(_:)));
+                 previewController.dataSource = self;
+                    let navigationController = UINavigationController(rootViewController: previewController);
+                    navigationController.modalPresentationStyle = .fullScreen;
+                    self.viewController?.present(navigationController, animated: true, completion: nil);
+                    if self.viewController!.isViewLoaded {
+                        pluginResult = CDVPluginResult(
+                            status: CDVCommandStatus_OK,
+                            messageAs: "SUCCESS"
+                        );
+                        pluginResult?.keepCallback = true;
+                        self.commandDelegate!.send(
+                            pluginResult,
+                            callbackId: _command.callbackId
+                        );
+                    }
+                    else{
+                        pluginResult = CDVPluginResult(
+                            status: CDVCommandStatus_ERROR,
+                            messageAs: "FAILED"
+                        );
+                        self.commandDelegate!.send(
+                            pluginResult,
+                            callbackId: _command.callbackId
+                        );
+                    }
+                });
+
+            }else{
+                pluginResult = CDVPluginResult(
+                    status: CDVCommandStatus_ERROR,
+                    messageAs: callback?.localizedDescription
+                );
+                self.commandDelegate!.send(
+                    pluginResult,
+                    callbackId: _command.callbackId
+                );
+
+            }
+        })
+    }
     
-    
+    @objc func closePreview(_ sender: Any?) {
+        self.viewController.dismiss(animated: true) // << dismiss preview
+    }
+
+
+
     @objc(previewBase64:)
     func previewBase64(_command: CDVInvokedUrlCommand){
-       
+
         var pluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
@@ -251,7 +166,7 @@ class PreviewControllerToolbar: UIToolbar {
         var mimeType = _command.arguments[2] as! String;
         let name = _command.arguments[1] as! String;
         var fileName = "";
-        
+
         if(base64String.isEmpty){
             pluginResult = CDVPluginResult(
                 status: CDVCommandStatus_ERROR,
@@ -267,7 +182,7 @@ class PreviewControllerToolbar: UIToolbar {
             base64String = baseTmp[1];
             mimeType = baseTmp[0].replacingOccurrences(of: "data:",with: "").replacingOccurrences(of: ";base64",with: "");
         }
-        
+
         if(name.isEmpty && mimeType.isEmpty){
             pluginResult = CDVPluginResult(
                 status: CDVCommandStatus_ERROR,
@@ -279,7 +194,7 @@ class PreviewControllerToolbar: UIToolbar {
             );
             return;
         }
-        
+
         if(!name.isEmpty){
             fileName = name
         }else if(!mimeType.isEmpty){
@@ -288,7 +203,7 @@ class PreviewControllerToolbar: UIToolbar {
                 ext = NewExt!.takeRetainedValue() as String;
                 fileName = "file."+ext;
         }
-        
+
         guard
             var documentsURL = (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)).last,
             let convertedData = Data(base64Encoded: base64String)
@@ -301,7 +216,7 @@ class PreviewControllerToolbar: UIToolbar {
                 pluginResult,
                 callbackId: _command.callbackId
             );
-        
+
             //handle error when getting documents URL
             return
         }
@@ -322,15 +237,16 @@ class PreviewControllerToolbar: UIToolbar {
         }
 
         let myUrl:String = documentsURL.absoluteString;
-        
+
         self.downloadfile(withName: myUrl,fileName: fileName,completion: {(success, fileLocationURL, callback) in
             if success {
 
                 self.previewItem = fileLocationURL! as NSURL
-                let previewController = QLPreviewController();
-                previewController.dataSource = self;
-                previewController.delegate = self;
+
                 DispatchQueue.main.async(execute: {
+                 let previewController = QLPreviewController();
+                 previewController.dataSource = self;
+                 previewController.delegate = self;
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
@@ -367,13 +283,18 @@ class PreviewControllerToolbar: UIToolbar {
 
             }
         })
-        
+
     }
 
     func downloadfile(withName myUrl: String,fileName:String,completion: @escaping (_ success: Bool,_ fileLocation: URL? , _ callback : NSError?) -> Void){
         let  url = myUrl.addingPercentEncoding(withAllowedCharacters:NSCharacterSet.urlQueryAllowed)!;
         var itemUrl: URL? = Foundation.URL(string: url);
-       
+
+       //if the file not exist by read the url, so try again to get the file by reading base64 string
+        if !FileManager.default.fileExists(atPath: itemUrl!.path) {
+                   itemUrl = Foundation.URL(string: myUrl);
+        }
+        
         if FileManager.default.fileExists(atPath: itemUrl!.path) {
 
             if(itemUrl?.scheme == nil){
@@ -381,7 +302,7 @@ class PreviewControllerToolbar: UIToolbar {
             }
             return completion(true, itemUrl,nil)
         }
-        
+
         let documentsDirectoryURL =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         var disFileName = "";
         if(fileName.isEmpty){
@@ -390,7 +311,7 @@ class PreviewControllerToolbar: UIToolbar {
             disFileName = fileName;
         }
         let destinationUrl = documentsDirectoryURL.appendingPathComponent(disFileName);
-    
+
         if FileManager.default.fileExists(atPath: destinationUrl.path) {
             do {
                 try FileManager.default.removeItem(at: destinationUrl)
@@ -434,13 +355,10 @@ extension PreviewAnyFile: QLPreviewControllerDataSource, QLPreviewControllerDele
         return self.previewItem as QLPreviewItem
     }
 
-    @available(iOS 13.0, *)
-    func previewController(_ controller: QLPreviewController, editingModeFor previewItem: QLPreviewItem
-    ) -> QLPreviewItemEditingMode {
-        .disabled
-    }
-
     func previewControllerWillDismiss(_ controller: QLPreviewController) {
         self.dismissPreviewCallback();
+
     }
+    
+    
 }
