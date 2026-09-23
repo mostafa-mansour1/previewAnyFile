@@ -28,7 +28,7 @@ import CoreServices
                             status: CDVCommandStatus_OK,
                             messageAs: "SUCCESS"
                         );
-                        pluginResult?.keepCallback = true;
+                        pluginResult.keepCallback = true;
                         self.commandDelegate!.send(
                             pluginResult,
                             callbackId: _command.callbackId
@@ -97,7 +97,7 @@ import CoreServices
                             status: CDVCommandStatus_OK,
                             messageAs: "SUCCESS"
                         );
-                        pluginResult?.keepCallback = true;
+                        pluginResult.keepCallback = true;
                         self.commandDelegate!.send(
                             pluginResult,
                             callbackId: _command.callbackId
@@ -229,7 +229,7 @@ import CoreServices
                             status: CDVCommandStatus_OK,
                             messageAs: "SUCCESS"
                         );
-                        pluginResult?.keepCallback = true;
+                        pluginResult.keepCallback = true;
                         self.commandDelegate!.send(
                             pluginResult,
                             callbackId: _command.callbackId
