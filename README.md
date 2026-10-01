@@ -1,34 +1,63 @@
 # Preview Any File
 
-[![npm](https://img.shields.io/npm/v/cordova-plugin-preview-any-file)](https://www.npmjs.com/package/cordova-plugin-preview-any-file)
+[![npm version](https://img.shields.io/npm/v/cordova-plugin-preview-any-file)](https://www.npmjs.com/package/cordova-plugin-preview-any-file)
 [![npm downloads](https://img.shields.io/npm/dm/cordova-plugin-preview-any-file)](https://www.npmjs.com/package/cordova-plugin-preview-any-file)
+[![license](https://img.shields.io/npm/l/cordova-plugin-preview-any-file)](LICENSE)
 
-A Cordova plugin that previews any file natively in your iOS or Android app: PDF, Word, Excel and other Office documents, images, text, HTML, archives and more. Works in Cordova and Capacitor apps.
+**Open PDFs, Office documents, images and other files inside your Cordova or Capacitor app on iOS and Android.**
 
-You can preview a local file, a remote URL, a base64 string, or a file bundled in your app's assets. If the path has no file extension, pass the file name or MIME type in the options.
+One call, any source: a file on the device, a URL, a base64 string, or a file bundled with your app.
 
-## How it works
+<table>
+  <tr>
+    <th>iOS (Quick Look)</th>
+    <th>Android (installed viewer app)</th>
+  </tr>
+  <tr>
+    <td><img src="https://raw.githubusercontent.com/mostafa-mansour1/previewAnyFile/master/docs/ios.png" width="280" alt="A PDF invoice previewed with Quick Look on iOS"></td>
+    <td><img src="https://raw.githubusercontent.com/mostafa-mansour1/previewAnyFile/master/docs/android.png" width="280" alt="The same PDF invoice opened in the PDF viewer on Android"></td>
+  </tr>
+</table>
 
-### iOS
+```js
+window.PreviewAnyFile.previewPath(
+    status => console.log(status),          // "SUCCESS", then "CLOSING" when the user closes it
+    error => console.error(error),
+    'https://example.com/files/invoice.pdf'
+);
+```
 
-Uses the built-in [QLPreviewController](https://developer.apple.com/documentation/quicklook/qlpreviewcontroller) (Quick Look). It can display:
+## Contents
 
-- iWork documents
-- Microsoft Office documents (Office ‘97 and newer)
-- Rich Text Format (RTF) documents
-- PDF files
-- Images
-- Text files whose uniform type identifier (UTI) conforms to `public.text`
-- Comma-separated value (csv) files
-- 3D models in USDZ format
+- [Features](#features)
+- [Why this plugin exists](#why-this-plugin-exists)
+- [Requirements](#requirements)
+- [Install](#install)
+- [API](#api)
+- [Examples](#examples)
+- [How it works](#how-it-works)
+- [Troubleshooting](#troubleshooting)
+- [Upgrading from 0.2.x](#upgrading-from-02x)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [Author](#author)
 
-For any other file type, Quick Look shows a "cannot preview" screen with a button to save or share the file. Remote URLs are downloaded first; if the server returns an HTTP error, the error callback is called.
+## Features
 
-### Android
+- **Any file type**: PDF, Word, Excel, PowerPoint, Keynote, Pages, Numbers, RTF, CSV, text, images, USDZ 3D models, and anything else the platform can display.
+- **Any source**: local `file://` paths, `content://` URIs (Android), remote URLs, base64 strings or data URLs, and files in your app's `www` assets.
+- **Native viewer**: Quick Look on iOS; the user's installed viewer app on Android (for example Google Drive's PDF viewer or Google Photos).
+- **Close callback**: get `CLOSING` when the user dismisses the preview.
+- **Cordova and Capacitor**: one plugin for both.
+- **No setup**: no permissions to request, no extra configuration.
 
-Android has no built-in document viewer, so the plugin opens the file with `Intent.ACTION_VIEW`. If a suitable app is installed (for example Google Drive's PDF viewer or Google Photos), the file opens directly; otherwise the user is asked to choose an app.
+## Why this plugin exists
 
-Local files and base64 content are shared with the viewer app through the plugin's own `FileProvider`.
+> In 2019 I was building a mobile app and wanted users to open files right inside it: a PDF, then a Word file, then an Excel sheet, without leaving the app. I couldn't find a Cordova plugin that did it cleanly on both iOS and Android, so I spent a few evenings writing one and put it on GitHub.
+>
+> Seven years and more than 600,000 downloads later, it has become one of the plugins developers use to show files in Cordova and Ionic apps, and 2026 is already its busiest year. Version 0.3.0 brings it up to date with current Cordova and Capacitor and fixes the long-standing issues.
+>
+> — [Mostafa Mansour](https://github.com/mostafa-mansour1)
 
 ## Requirements
 
@@ -38,13 +67,11 @@ Local files and base64 content are shared with the viewer app through the plugin
 | cordova-ios | 8 or newer |
 | Capacitor | 7 or newer |
 
-Cordova projects on older platforms automatically keep installing 0.2.9, the previous release.
+Cordova projects on older platforms keep installing 0.2.9 automatically.
 
-### Tested with (0.3.0)
+**Tested with 0.3.0.** Built and run on an Android 16 emulator (API 36) and an iOS 26.5 simulator. Each run previewed a local PDF, a remote PDF, a base64 image and a bundled asset, and checked the callbacks.
 
-Built and run on an emulator and a simulator. Each run previewed a local `file://` PDF, a remote PDF, a base64 image and a bundled asset, and checked the `SUCCESS` / `CLOSING` callbacks:
-
-| Setup | Android 16 emulator (API 36) | iOS 26.5 simulator |
+| Setup | Android | iOS |
 | --- | --- | --- |
 | Cordova 13 + cordova-android 15.1 / cordova-ios 8.1 | ✅ | ✅ |
 | cordova-android 14.0 | ✅ | — |
@@ -55,196 +82,144 @@ Not yet verified on physical devices.
 
 ## Install
 
-### Cordova
+**Cordova**
 
-```
+```bash
 cordova plugin add cordova-plugin-preview-any-file
 ```
 
-### Capacitor
+**Capacitor**
 
-```
+```bash
 npm install cordova-plugin-preview-any-file
 npx cap sync
 ```
 
-Capacitor loads Cordova plugins directly; no extra setup is needed. Call the plugin through `window.PreviewAnyFile` as shown below.
+Capacitor runs Cordova plugins directly, so no extra setup is needed.
 
-### Ionic wrapper
+**Ionic**: a typed wrapper is maintained in the community [awesome-cordova-plugins](https://github.com/danielsogl/awesome-cordova-plugins/tree/master/src/%40awesome-cordova-plugins/plugins/preview-any-file) project (`@awesome-cordova-plugins/preview-any-file`). If a method does not behave as expected through the wrapper, call `window.PreviewAnyFile` directly.
 
-A typed wrapper is maintained in the community [awesome-cordova-plugins](https://github.com/danielsogl/awesome-cordova-plugins/tree/master/src/%40awesome-cordova-plugins/plugins/preview-any-file) project (`@awesome-cordova-plugins/preview-any-file`). If a method does not behave as expected through the wrapper, call `window.PreviewAnyFile` directly.
+## API
 
-## Usage
+The plugin is available as `window.PreviewAnyFile` once the `deviceready` event has fired.
 
-All methods take a success callback, an error callback, the file, and optional `{ name, mimeType }`.
+| Method | Use it for |
+| --- | --- |
+| `previewPath(success, error, path, options?)` | A `file://` path, a `content://` URI, or an `http(s)://` URL |
+| `previewBase64(success, error, base64, options?)` | A base64 string or a `data:` URL |
+| `previewAsset(success, error, assetPath, options?)` | A file in your app's `www` folder, for example `/assets/manual.pdf` |
 
-The success callback is called with:
+**Options** (optional; needed when the path has no file extension):
 
-- `"SUCCESS"`: the preview opened
-- `"CLOSING"`: the user closed the preview
-- `"NO_APP"`: no app on the device can open this file (Android)
+| Option | Type | Description |
+| --- | --- | --- |
+| `name` | `string` | File name to use, for example `report.pdf`. Only the file name is used; any folder part is ignored. |
+| `mimeType` | `string` | MIME type, for example `application/pdf`. |
 
-### Preview a file on the device
+**Success callback values:**
 
-The path must be an absolute `file://` path. With [cordova-plugin-file](https://github.com/apache/cordova-plugin-file), use `entry.nativeURL` (or `cordova.file.dataDirectory + name`), not `entry.toURL()`: on current platforms `toURL()` returns a WebView URL (`app://localhost/...` or `https://localhost/...`) that native code cannot open.
+| Value | Meaning |
+| --- | --- |
+| `"SUCCESS"` | The preview opened. |
+| `"CLOSING"` | The user closed the preview. |
+| `"NO_APP"` | No app on the device can open this file type (Android). |
+
+The error callback receives a message string, for example `Download failed with HTTP 404`.
+
+## Examples
+
+### A file on the device
+
+Pass an absolute `file://` path. With [cordova-plugin-file](https://github.com/apache/cordova-plugin-file), use `entry.nativeURL` or `cordova.file.dataDirectory + name`.
 
 ```js
 window.PreviewAnyFile.previewPath(
-    win => {
-        if (win == "SUCCESS") {
-            console.log('success')
-        } else if (win == "CLOSING") {
-            console.log('closing')
-        } else if (win == "NO_APP") {
-            console.log('no suitable app to open the file (mainly on Android)')
-        }
+    status => {
+        if (status === 'NO_APP') alert('No app installed can open this file.');
     },
-    error => console.error("open failed", error),
-    "file:///path/to/filename.ext"
+    error => console.error('Preview failed', error),
+    cordova.file.dataDirectory + 'report.pdf'
 );
 ```
 
-### Preview a file from a URL
+### A file from a URL
 
-On iOS the file is downloaded before the preview opens, so show a loader before calling and hide it in the callback. If the URL has no file extension, pass the file name or MIME type.
-
-On Android the URL is passed to the installed viewer app as is, so whether it opens depends on the apps on the device. Google Drive's PDF viewer opens `https` PDF links; many other viewers do not. If you need this to work reliably on Android, download the file first and preview the local copy.
+On iOS the file is downloaded before the preview opens, so show a loading indicator until the first callback.
 
 ```js
+showLoader();
 window.PreviewAnyFile.previewPath(
-    win => console.log("open status", win),
-    error => console.error("open failed", error),
-    "https://www.example.com/samplefile",
-    { name: 'file.pdf' }
+    status => { hideLoader(); console.log(status); },
+    error => { hideLoader(); console.error(error); },
+    'https://example.com/download?id=42',
+    { name: 'statement.pdf' }   // the URL has no extension, so give it a name
 );
 ```
 
-### Preview a base64 string
+### A base64 string
 
 ```js
-window.PreviewAnyFile.previewBase64(
-    win => console.log("open status", win),
-    error => console.error("open failed", error),
-    'data:image/gif;base64,R0lGODlhP.....'
-);
+// a data: URL carries its own MIME type
+window.PreviewAnyFile.previewBase64(success, error, 'data:image/png;base64,iVBORw0KGgo...');
 
-// without a data: prefix, pass the MIME type or a file name
-window.PreviewAnyFile.previewBase64(
-    win => console.log("open status", win),
-    error => console.error("open failed", error),
-    'JVBERi0xLjMKJcTl8uXr.....',
-    { mimeType: 'application/pdf' }
-);
+// plain base64 needs a name or a MIME type
+window.PreviewAnyFile.previewBase64(success, error, 'JVBERi0xLjMKJcTl8uXr...', { mimeType: 'application/pdf' });
 ```
 
-### Preview a file from your app's assets
+### A file bundled with your app
 
 ```js
-window.PreviewAnyFile.previewAsset(
-    win => console.log("open status", win),
-    error => console.error("open failed", error),
-    '/assets/localFile.pdf'
-);
-
-// if the file has no extension, pass the MIME type or a file name
-window.PreviewAnyFile.previewAsset(
-    win => console.log("open status", win),
-    error => console.error("open failed", error),
-    '/assets/fileWithoutExt',
-    { mimeType: 'application/pdf', name: 'file.pdf' }
-);
+window.PreviewAnyFile.previewAsset(success, error, '/assets/user-guide.pdf');
 ```
 
-## Supported platforms
+## How it works
 
-- Android
-- iOS
+**iOS** uses Apple's [Quick Look](https://developer.apple.com/documentation/quicklook/qlpreviewcontroller) inside your app. Remote files are downloaded first, and an HTTP error is reported to the error callback. Files Quick Look cannot display show a screen with a share button. Previewed files are stored in the app's temporary folder.
 
-## Change Log
+**Android** has no built-in document viewer, so the plugin hands the file to an installed app with `Intent.ACTION_VIEW`. Local and base64 files are shared through the plugin's own `FileProvider`. If several apps can open the file, Android asks the user to choose one.
 
--- version 0.3.0
+## Troubleshooting
 
-Works on current Cordova and Capacitor again. Tested on cordova-android 14 and 15, cordova-ios 8, and Capacitor 7 and 8.
+**Android opens the viewer but the page is blank.**
+Upgrade to 0.3.0. Older versions shared their `FileProvider` with cordova-android and other plugins, so the viewer app was denied access to the file.
 
-- (Security, iOS and Android) the `name` option was used as a file path as-is, so a name such as `../file` wrote outside the plugin's folder (and on iOS deleted the existing file there first). This could be exploited when an app passes a server-supplied file name. Only the last path component of `name` is used now.
-- (Security, Android) removed debug logging that printed full URLs and file paths to logcat; signed URLs could leak access tokens there.
-- (Privacy, iOS) previewed and downloaded files are now saved in the app's temporary folder instead of `Documents`, so they are no longer kept indefinitely or included in device backups. If your app relied on finding previewed files in `Documents`, save a copy yourself before previewing.
-- (Privacy, Android) the plugin no longer requests the `WRITE_EXTERNAL_STORAGE` permission. It never needed it: files are written to app-specific storage. If your app needs that permission for its own code, declare it in your app's `config.xml`.
-- (Android) replace the pinned `androidx.appcompat:appcompat:1.3.1` with `androidx.core:core:1.13.0`, the library the plugin actually uses. Supported Cordova and Capacitor versions already include it, so app dependency versions do not change.
-- (iOS) fix build on cordova-ios 8: the plugin no longer compiled, and its `cordova-plugin-add-swift-support` dependency failed during install. That dependency is removed; cordova-ios 8 supports Swift natively.
-- (iOS) a remote URL that returns an HTTP error (404, 403, ...) now calls the error callback instead of previewing the error page as the file.
-- (iOS) URLs that are already percent-encoded are no longer encoded twice, which broke signed URLs and file names containing `#`, spaces or accents (#45).
-- (Android) fix blank documents: local and base64 files opened in the viewer as empty pages on current cordova-android, because the plugin's `FileProvider` shared its class name with cordova-android's own provider. The plugin now uses its own provider class (`com.mostafa.previewanyfile.PreviewAnyFileProvider`), authority (`<applicationId>.previewanyfile.provider`) and paths file (`res/xml/preview_any_file_paths.xml`), so it no longer conflicts with Capacitor or other plugins either.
-- (Android) remove the `cordova-plugin-androidx` and `cordova-plugin-androidx-adapter` dependencies, which are not needed on supported platforms (#44).
-- `previewAsset` now calls the error callback when the asset cannot be loaded (it previously only logged to the console).
-- Declare minimum platforms (cordova-android 14, cordova-ios 8). Cordova projects on older platforms keep installing 0.2.9.
-- README: Capacitor install, requirements and tested versions, `nativeURL` vs `toURL()`, Android remote URL behaviour, working Ionic wrapper link (#47).
+**iOS build fails, or `cordova plugin add` fails on cordova-ios 8.**
+Upgrade to 0.3.0. Versions up to 0.2.9 do not support cordova-ios 8.
 
--- version 0.2.9
+**`unsupported URL` when previewing a file from cordova-plugin-file.**
+You passed `entry.toURL()`. On current platforms it returns a WebView address (`app://localhost/...` or `https://localhost/...`). Pass `entry.nativeURL` instead.
 
-- (Android) fix Android AppCompat version to 1.3.1 #37 (https://github.com/mostafa-mansour1/previewAnyFile/issues/37)
+**A remote file does not open on Android.**
+On Android the URL goes straight to the viewer app, so it only opens if an installed app accepts web links for that file type (Google Drive's PDF viewer does; many others do not). For reliable results, download the file first and preview the local copy.
 
--- version 0.2.8
+**The Ionic wrapper throws `The old format of this exec call has been removed`.**
+Call `window.PreviewAnyFile` directly, as in the examples above.
 
-- (IOS) fix issue some base64 not preview if it has the full mimetype
+## Upgrading from 0.2.x
 
--- version 0.2.7
+The JavaScript API is unchanged. Check these if they apply to your app:
 
-- (IOS) fix issue reported by @Siedlerchr #26 (https://github.com/mostafa-mansour1/previewAnyFile/issues/26)
+- **Minimum platforms** are now cordova-android 14 and cordova-ios 8. Older Cordova projects keep getting 0.2.9.
+- **iOS** stores previewed files in the temporary folder instead of `Documents`. Save your own copy if you need to keep the file.
+- **Android** no longer adds the `WRITE_EXTERNAL_STORAGE` permission to your app. If your own code needs it, declare it in your `config.xml`.
+- **Android** uses its own `FileProvider` (`<applicationId>.previewanyfile.provider`). Nothing to change unless your code referenced the old `<applicationId>.fileprovider` authority from this plugin.
 
--- version 0.2.6
+## Changelog
 
-- (IOS) fix issue reported by @Siedlerchr #23 (https://github.com/mostafa-mansour1/previewAnyFile/issues/23)
+See [CHANGELOG.md](CHANGELOG.md).
 
--- version 0.2.3
+**Known issue:** on Android, remote URLs are not downloaded before opening; whether they open depends on the viewer apps on the device.
 
-- (IOS) add CoreServices.framework to prevent build issues
+## Contributing
 
--- version 0.2.2
+Bug reports and pull requests are welcome on [GitHub](https://github.com/mostafa-mansour1/previewAnyFile/issues). For a bug, please include your platform versions (Cordova or Capacitor, iOS or Android), the method you called and the error message.
 
-- (Android) prevent application crashing on null
+Thanks to everyone who has contributed fixes over the years, including [@Siedlerchr](https://github.com/Siedlerchr), [@florianguillaumin](https://github.com/florianguillaumin), [@camhungh](https://github.com/camhungh), [@drewwynne0](https://github.com/drewwynne0), and the [Missive](https://github.com/missive/cordova-plugin-preview-any-file) team, whose fork pointed the way to the FileProvider and URL-encoding fixes in 0.3.0.
 
--- version 0.2.1
+## Author
 
-- fix compatibility with Ionic Capacitor
+Built and maintained by [Mostafa Mansour](https://github.com/mostafa-mansour1). Also by Mostafa: [OPAL](https://opalapi.dev), a free offline explorer for Oracle Fusion REST APIs.
 
--- version 0.2.0
+## License
 
-- (deprecated method) preview method will marked as deprecated, you have to use previewPath instead.
-- add new methods to preview/open any file from any where (base64, asset folder, public url, locale file with any schema )
-- (Android) add CLOSING callback when user finish the preview
-- (Android) fix issue when open file:// or content:// (now you can view the file directly without resolve any path)
-
--- version 0.1.7
-
-- add callback when closing in IOS (thank @drewwynne0)
-
--- version 0.1.6
-
-- fix minor issues
-
--- version 0.1.5
-
-- (Android) Temporary fix for the issue that file not opened in SDK > 28
-
--- version 0.1.4
-
-- (Android) fix issue getting the file extension
-
--- version 0.1.3
-
-- (IOS) fix issue when provide a path of the file not the url , now it accept path that start with "/" or url start with "file://"
-- (IOS) fix issue if open external link more then one time
-- (IOS, Android) fix call back
-
--- version 0.1.2
-
-- update readme to add documentation
-
--- version 0.1.1
-
-- initial the plugin
-
-## Known issues
-
-- (Android) remote URLs are not downloaded before opening; whether they open depends on the viewer apps installed on the device.
+[MIT](LICENSE)

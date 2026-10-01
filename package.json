@@ -22,6 +22,11 @@
         "cordova zip",
         "cordova document"
     ],
+    "files": [
+        "plugin.xml",
+        "src",
+        "www"
+    ],
     "author": "Mostafa Mansour <mostafa@outlook.kr>",
     "license": "MIT",
     "engines": {
