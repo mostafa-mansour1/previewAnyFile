@@ -38,7 +38,7 @@ PreviewAnyFile.prototype.previewAsset = function ( successCallback, errorCallbac
                 exec( successCallback, errorCallback, "PreviewAnyFile", "previewBase64", [ base64, name, mimeType ] );
             }
         } )
-        .catch( () => console.log( 'assets error' ) );
+        .catch( err => errorCallback && errorCallback( 'Cannot load asset ' + path + ': ' + err ) );
 };
 module.exports = new PreviewAnyFile();
 

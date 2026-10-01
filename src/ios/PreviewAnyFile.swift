@@ -7,7 +7,7 @@ import CoreServices
     @objc(preview:)
     func preview(_command: CDVInvokedUrlCommand){
 
-        var pluginResult = CDVPluginResult(
+        var pluginResult: CDVPluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
         tempCommandId = _command.callbackId;
@@ -28,7 +28,7 @@ import CoreServices
                             status: CDVCommandStatus_OK,
                             messageAs: "SUCCESS"
                         );
-                        pluginResult?.keepCallback = true;
+                        pluginResult.keepCallback = true;
                         self.commandDelegate!.send(
                             pluginResult,
                             callbackId: _command.callbackId
@@ -49,7 +49,7 @@ import CoreServices
             }else{
                 pluginResult = CDVPluginResult(
                     status: CDVCommandStatus_ERROR,
-                    messageAs: callback?.localizedDescription
+                    messageAs: callback?.localizedDescription ?? "Unknown error"
                 );
                 self.commandDelegate!.send(
                     pluginResult,
@@ -63,14 +63,14 @@ import CoreServices
 
     @objc(previewPath:)
     func previewPath(_command: CDVInvokedUrlCommand){
-        var pluginResult = CDVPluginResult(
+        var pluginResult: CDVPluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
         tempCommandId = _command.callbackId;
         var ext:String = "";
         let myUrl = _command.arguments[0] as! String;
         let mimeType = _command.arguments[2] as! String;
-        let name = _command.arguments[1] as! String;
+        let name = safeFileName(_command.arguments[1] as! String);
         var fileName = "";
 
         if(!name.isEmpty){
@@ -97,7 +97,7 @@ import CoreServices
                             status: CDVCommandStatus_OK,
                             messageAs: "SUCCESS"
                         );
-                        pluginResult?.keepCallback = true;
+                        pluginResult.keepCallback = true;
                         self.commandDelegate!.send(
                             pluginResult,
                             callbackId: _command.callbackId
@@ -118,7 +118,7 @@ import CoreServices
             }else{
                 pluginResult = CDVPluginResult(
                     status: CDVCommandStatus_ERROR,
-                    messageAs: callback?.localizedDescription
+                    messageAs: callback?.localizedDescription ?? "Unknown error"
                 );
                 self.commandDelegate!.send(
                     pluginResult,
@@ -133,14 +133,14 @@ import CoreServices
     @objc(previewBase64:)
     func previewBase64(_command: CDVInvokedUrlCommand){
 
-        var pluginResult = CDVPluginResult(
+        var pluginResult: CDVPluginResult = CDVPluginResult(
             status: CDVCommandStatus_ERROR
         )
         tempCommandId = _command.callbackId;
         var ext:String = "";
         var base64String = _command.arguments[0] as! String;
         var mimeType = _command.arguments[2] as! String;
-        let name = _command.arguments[1] as! String;
+        let name = safeFileName(_command.arguments[1] as! String);
         var fileName = "";
 
         if(base64String.isEmpty){
@@ -181,7 +181,8 @@ import CoreServices
         }
 
         guard
-            var documentsURL = (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)).last,
+            // tmp, not Documents: previews are not kept forever or included in device backups.
+            var documentsURL = Optional(FileManager.default.temporaryDirectory),
             let convertedData = Data(base64Encoded: base64String)
             else {
             pluginResult = CDVPluginResult(
@@ -209,7 +210,7 @@ import CoreServices
                 pluginResult,
                 callbackId: _command.callbackId
             );
-            //handle write error here
+            return
         }
 
         let myUrl:String = documentsURL.absoluteString;
@@ -229,7 +230,7 @@ import CoreServices
                             status: CDVCommandStatus_OK,
                             messageAs: "SUCCESS"
                         );
-                        pluginResult?.keepCallback = true;
+                        pluginResult.keepCallback = true;
                         self.commandDelegate!.send(
                             pluginResult,
                             callbackId: _command.callbackId
@@ -250,7 +251,7 @@ import CoreServices
             }else{
                 pluginResult = CDVPluginResult(
                     status: CDVCommandStatus_ERROR,
-                    messageAs: callback?.localizedDescription
+                    messageAs: callback?.localizedDescription ?? "Unknown error"
                 );
                 self.commandDelegate!.send(
                     pluginResult,
@@ -263,18 +264,25 @@ import CoreServices
     }
 
     func downloadfile(withName myUrl: String,fileName:String,completion: @escaping (_ success: Bool,_ fileLocation: URL? , _ callback : NSError?) -> Void){
-        let  url = myUrl.addingPercentEncoding(withAllowedCharacters:NSCharacterSet.urlQueryAllowed)!;
-        var itemUrl: URL? = Foundation.URL(string: url);
+        // Only percent-encode when the string doesn't parse as-is: encoding an already-encoded url
+        // turns `%23` into `%2523` and breaks signed urls.
+        var itemUrl: URL? = Foundation.URL(string: myUrl);
+        if itemUrl == nil, let encoded = myUrl.addingPercentEncoding(withAllowedCharacters: NSCharacterSet.urlQueryAllowed) {
+            itemUrl = Foundation.URL(string: encoded);
+        }
+        guard itemUrl != nil else {
+            return completion(false, nil, NSError(domain: "PreviewAnyFile", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid file path"]));
+        }
 
         if FileManager.default.fileExists(atPath: itemUrl!.path) {
-            
+
             if(itemUrl?.scheme == nil){
-                itemUrl = Foundation.URL(string: "file://\(url)");
+                itemUrl = Foundation.URL(fileURLWithPath: itemUrl!.path);
             }
             return completion(true, itemUrl,nil)
         }
 
-        let documentsDirectoryURL =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let documentsDirectoryURL = FileManager.default.temporaryDirectory
         var disFileName = "";
         if(fileName.isEmpty){
             disFileName = itemUrl?.lastPathComponent ?? "file.pdf";
@@ -293,9 +301,14 @@ import CoreServices
         }
         let downloadTask = URLSession.shared.downloadTask(with: itemUrl!, completionHandler: { (location, response, error) -> Void in
             if error != nil{
-                completion(false, nil, error as NSError?)
+                return completion(false, nil, error as NSError?)
             }
-            guard let tempLocation = location, error == nil else { return }
+            // A 403/404 still yields a body; without this the error page is previewed as the file.
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? 200;
+            guard (200..<300).contains(statusCode) else {
+                return completion(false, nil, NSError(domain: "PreviewAnyFile", code: statusCode, userInfo: [NSLocalizedDescriptionKey: "Download failed with HTTP \(statusCode)"]));
+            }
+            guard let tempLocation = location else { return }
             do {
                 try FileManager.default.moveItem(at: tempLocation, to: destinationUrl)
                 completion(true, destinationUrl,nil)
@@ -307,6 +320,13 @@ import CoreServices
 
         downloadTask.resume();
 
+    }
+
+    // Keep only the last path component so a caller-supplied name like "../../x" cannot escape
+    // the temporary directory (the destination is deleted before it is written).
+    func safeFileName(_ name: String) -> String {
+        let base = (name as NSString).lastPathComponent;
+        return (base == "." || base == ".." || base == "/") ? "" : base;
     }
 
     func dismissPreviewCallback(){

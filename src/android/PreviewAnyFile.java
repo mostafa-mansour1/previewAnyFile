@@ -30,6 +30,15 @@ public class PreviewAnyFile extends CordovaPlugin {
   private CallbackContext callbackContext; // The callback context from which we were invoked.
   private String mimeType = null;
 
+  // Keep only the last path segment so a caller-supplied name like "../../x" cannot escape the
+  // plugin's directory.
+  private static String safeFileName(String name) {
+    if (name == null)
+      return null;
+    String base = new File(name).getName();
+    return (".".equals(base) || "..".equals(base)) ? "" : base;
+  }
+
   private static boolean notEmpty(String what) {
     return what != null && !"".equals(what) && !"null".equalsIgnoreCase(what);
   }
@@ -83,8 +92,6 @@ public class PreviewAnyFile extends CordovaPlugin {
 
   private void preview(String url) throws URISyntaxException {
     this.mimeType = bathToMime(url);
-    System.out.println("this.mimeType" + mimeType);
-    System.out.println("this.url" + url);
     viewFile(pathToUri(url));
   }
 
@@ -132,7 +139,7 @@ public class PreviewAnyFile extends CordovaPlugin {
     if (url.startsWith("file:")) {
       File file = new File(new URI(url));
       uri = FileProvider.getUriForFile(this.cordova.getActivity(),
-          this.cordova.getActivity().getApplicationContext().getPackageName() + ".fileprovider", file);
+          this.cordova.getActivity().getApplicationContext().getPackageName() + ".previewanyfile.provider", file);
 
     } else {
       uri = Uri.parse(url);
@@ -141,6 +148,7 @@ public class PreviewAnyFile extends CordovaPlugin {
   }
 
   private String base64ToPath(String base64, String fileName) throws IOException {
+    fileName = safeFileName(fileName);
     String dir = getDownloadDir();
     String localFile = null;
     String encodedBase64 = null;
@@ -166,7 +174,6 @@ public class PreviewAnyFile extends CordovaPlugin {
       String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
       fileName = System.currentTimeMillis() + "_file" + (notEmpty(ext) ? "." + ext : "");
     }
-    System.out.println("fileName -> " + fileName);
     saveFile(Base64.decode(encodedBase64, Base64.DEFAULT), dir, fileName);
     localFile = "file://" + dir + "/" + fileName;
     File file = null;
@@ -245,7 +252,6 @@ public class PreviewAnyFile extends CordovaPlugin {
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent intent) {
     // do something with the result
-    System.out.println("onActivityResult - " + requestCode + " - " + resultCode);
     String status = "NO_APP";
     if (notEmpty(mimeType)) {
       if (!mimeType.equalsIgnoreCase("application/*")) {
@@ -257,7 +263,6 @@ public class PreviewAnyFile extends CordovaPlugin {
   }
 
   private void returnResult(PluginResult.Status status, String message) {
-    System.out.println("java message - " + message);
     PluginResult pluginResult = new PluginResult(status, message);
     pluginResult.setKeepCallback(true);
     this.callbackContext.sendPluginResult(pluginResult);

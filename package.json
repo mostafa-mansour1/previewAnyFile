@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-preview-any-file",
-    "version": "0.2.9",
+    "version": "0.3.0",
     "description": "Plugin to preview any file type from any where in native mode",
     "cordova": {
         "id": "cordova-plugin-preview-any-file",
@@ -13,6 +13,8 @@
         "ecosystem:cordova",
         "cordova-android",
         "cordova-ios",
+        "capacitor",
+        "ionic",
         "view document",
         "pdf",
         "doc",
@@ -22,6 +24,14 @@
     ],
     "author": "Mostafa Mansour <mostafa@outlook.kr>",
     "license": "MIT",
+    "engines": {
+        "cordovaDependencies": {
+            "0.3.0": {
+                "cordova-android": ">=14.0.0",
+                "cordova-ios": ">=8.0.0"
+            }
+        }
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/mostafa-mansour1/previewAnyFile.git"
