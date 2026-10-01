@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-preview-any-file",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Plugin to preview any file type from any where in native mode",
     "cordova": {
         "id": "cordova-plugin-preview-any-file",
@@ -22,15 +22,24 @@
         "cordova zip",
         "cordova document"
     ],
+    "types": "types/index.d.ts",
     "files": [
         "plugin.xml",
         "src",
+        "types",
         "www"
     ],
+    "scripts": {
+        "test": "node test/preview.test.js"
+    },
     "author": "Mostafa Mansour <mostafa@outlook.kr>",
     "license": "MIT",
     "engines": {
         "cordovaDependencies": {
+            "0.4.0": {
+                "cordova-android": ">=14.0.0",
+                "cordova-ios": ">=8.0.0"
+            },
             "0.3.0": {
                 "cordova-android": ">=14.0.0",
                 "cordova-ios": ">=8.0.0"

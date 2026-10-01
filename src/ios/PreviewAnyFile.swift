@@ -19,9 +19,7 @@ import CoreServices
                 self.previewItem = fileLocationURL! as NSURL
 
                 DispatchQueue.main.async(execute: {
-                 let previewController = QLPreviewController();
-                 previewController.dataSource = self;
-                 previewController.delegate = self;
+                 let previewController = self.makePreviewController(disableShare: false);
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
@@ -67,30 +65,29 @@ import CoreServices
             status: CDVCommandStatus_ERROR
         )
         tempCommandId = _command.callbackId;
-        var ext:String = "";
         let myUrl = _command.arguments[0] as! String;
         let mimeType = _command.arguments[2] as! String;
         let name = safeFileName(_command.arguments[1] as! String);
         var fileName = "";
+        var headers: [String: String] = [:];
+        if _command.arguments.count > 3, let raw = _command.arguments[3] as? [String: Any] {
+            for (key, value) in raw { headers[key] = "\(value)"; }
+        }
 
         if(!name.isEmpty){
             fileName = name
         }else if(!mimeType.isEmpty){
-            let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType as CFString, nil);
-            let NewExt = UTTypeCopyPreferredTagWithClass((uti?.takeRetainedValue())!, kUTTagClassFilenameExtension);
-                ext = NewExt!.takeRetainedValue() as String;
-                fileName = "file."+ext;
+            // an unknown MIME type used to crash here (force unwrap)
+            fileName = extensionForMime(mimeType).map { "file." + $0 } ?? "file";
         }
 
-        self.downloadfile(withName: myUrl,fileName: fileName,completion: {(success, fileLocationURL, callback) in
+        self.downloadfile(withName: myUrl,fileName: fileName,headers: headers,completion: {(success, fileLocationURL, callback) in
             if success {
 
                 self.previewItem = fileLocationURL! as NSURL
 
                 DispatchQueue.main.async(execute: {
-                 let previewController = QLPreviewController();
-                 previewController.dataSource = self;
-                 previewController.delegate = self;
+                 let previewController = self.makePreviewController(disableShare: self.disableShareOption(_command));
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
@@ -137,7 +134,6 @@ import CoreServices
             status: CDVCommandStatus_ERROR
         )
         tempCommandId = _command.callbackId;
-        var ext:String = "";
         var base64String = _command.arguments[0] as! String;
         var mimeType = _command.arguments[2] as! String;
         let name = safeFileName(_command.arguments[1] as! String);
@@ -174,10 +170,8 @@ import CoreServices
         if(!name.isEmpty){
             fileName = name
         }else if(!mimeType.isEmpty){
-            let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType as CFString, nil);
-            let NewExt = UTTypeCopyPreferredTagWithClass((uti?.takeRetainedValue())!, kUTTagClassFilenameExtension);
-                ext = NewExt!.takeRetainedValue() as String;
-                fileName = "file."+ext;
+            // an unknown MIME type used to crash here (force unwrap)
+            fileName = extensionForMime(mimeType).map { "file." + $0 } ?? "file";
         }
 
         guard
@@ -221,9 +215,7 @@ import CoreServices
                 self.previewItem = fileLocationURL! as NSURL
 
                 DispatchQueue.main.async(execute: {
-                 let previewController = QLPreviewController();
-                 previewController.dataSource = self;
-                 previewController.delegate = self;
+                 let previewController = self.makePreviewController(disableShare: self.disableShareOption(_command));
                     self.viewController?.present(previewController, animated: true, completion: nil);
                     if self.viewController!.isViewLoaded {
                         pluginResult = CDVPluginResult(
@@ -263,7 +255,7 @@ import CoreServices
 
     }
 
-    func downloadfile(withName myUrl: String,fileName:String,completion: @escaping (_ success: Bool,_ fileLocation: URL? , _ callback : NSError?) -> Void){
+    func downloadfile(withName myUrl: String,fileName:String,headers: [String: String] = [:],completion: @escaping (_ success: Bool,_ fileLocation: URL? , _ callback : NSError?) -> Void){
         // Only percent-encode when the string doesn't parse as-is: encoding an already-encoded url
         // turns `%23` into `%2523` and breaks signed urls.
         var itemUrl: URL? = Foundation.URL(string: myUrl);
@@ -296,10 +288,13 @@ import CoreServices
                 try FileManager.default.removeItem(at: destinationUrl)
                 //let error as NSError
             } catch let error as NSError  {
-                completion(false, nil,error)
+                return completion(false, nil,error)
             }
         }
-        let downloadTask = URLSession.shared.downloadTask(with: itemUrl!, completionHandler: { (location, response, error) -> Void in
+        var request = URLRequest(url: itemUrl!);
+        for (key, value) in headers { request.setValue(value, forHTTPHeaderField: key); }
+        let session = URLSession(configuration: .default, delegate: PreviewAnyFileRedirectGuard(original: itemUrl!, headers: headers), delegateQueue: nil);
+        let downloadTask = session.downloadTask(with: request, completionHandler: { (location, response, error) -> Void in
             if error != nil{
                 return completion(false, nil, error as NSError?)
             }
@@ -319,7 +314,52 @@ import CoreServices
         });
 
         downloadTask.resume();
+        session.finishTasksAndInvalidate();
 
+    }
+
+    func disableShareOption(_ command: CDVInvokedUrlCommand) -> Bool {
+        guard command.arguments.count > 4 else { return false }
+        return (command.arguments[4] as? Bool) ?? ((command.arguments[4] as? NSNumber)?.boolValue ?? false);
+    }
+
+    func makePreviewController(disableShare: Bool) -> QLPreviewController {
+        if disableShare {
+            let restricted = PreviewAnyFileRestrictedController();
+            restricted.dataSource = self;
+            restricted.onDismiss = { [weak self] in self?.dismissPreviewCallback() };
+            restricted.delegate = restricted;
+            return restricted;
+        }
+        let previewController = QLPreviewController();
+        previewController.dataSource = self;
+        previewController.delegate = self;
+        return previewController;
+    }
+
+    func extensionForMime(_ mimeType: String) -> String? {
+        guard !mimeType.isEmpty,
+              let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, mimeType as CFString, nil)?.takeRetainedValue(),
+              let ext = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassFilenameExtension)?.takeRetainedValue()
+        else { return nil }
+        return ext as String;
+    }
+
+    @objc(canPreview:)
+    func canPreview(_command: CDVInvokedUrlCommand){
+        let name = safeFileName(_command.arguments[0] as? String ?? "");
+        let mimeType = _command.arguments.count > 1 ? (_command.arguments[1] as? String ?? "") : "";
+        var ext = (name as NSString).pathExtension;
+        if ext.isEmpty, let mimeExt = extensionForMime(mimeType) { ext = mimeExt; }
+        var result = false;
+        if !ext.isEmpty {
+            // Quick Look decides by file type, so an empty file with the right extension is enough.
+            let probe = FileManager.default.temporaryDirectory.appendingPathComponent("preview-any-file-probe.\(ext)");
+            FileManager.default.createFile(atPath: probe.path, contents: Data());
+            result = QLPreviewController.canPreview(probe as NSURL);
+            try? FileManager.default.removeItem(at: probe);
+        }
+        self.commandDelegate!.send(CDVPluginResult(status: CDVCommandStatus_OK, messageAs: result), callbackId: _command.callbackId);
     }
 
     // Keep only the last path component so a caller-supplied name like "../../x" cannot escape
@@ -349,5 +389,78 @@ extension PreviewAnyFile: QLPreviewControllerDataSource, QLPreviewControllerDele
     func previewControllerWillDismiss(_ controller: QLPreviewController) {
         self.dismissPreviewCallback();
 
+    }
+}
+
+// Caller headers (e.g. Authorization) follow redirects only on the original host and never over a downgrade to http.
+class PreviewAnyFileRedirectGuard: NSObject, URLSessionTaskDelegate {
+    let original: URL
+    let headers: [String: String]
+
+    init(original: URL, headers: [String: String]) {
+        self.original = original
+        self.headers = headers
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+        var next = request
+        let sameHost = request.url?.host?.lowercased() == original.host?.lowercased()
+        let downgraded = original.scheme == "https" && request.url?.scheme != "https"
+        for (key, value) in headers {
+            next.setValue(sameHost && !downgraded ? value : nil, forHTTPHeaderField: key)
+        }
+        completionHandler(next)
+    }
+}
+
+// disableShare: hides Quick Look's share, save, print and markup controls, keeping the close button.
+// This changes the UI only (screenshots and copying from the document remain possible). It uses
+// public UIKit API on Quick Look's own navigation controller, so a future iOS layout can bring the
+// controls back; it never removes the close button. Checked on iOS 18.5 and 26.5.
+class PreviewAnyFileRestrictedController: QLPreviewController, QLPreviewControllerDelegate {
+    var onDismiss: (() -> Void)?
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        hideShareControls()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        hideShareControls()
+    }
+
+    func hideShareControls() {
+        toolbarItems = []
+        for nav in navigationControllers(in: self) {
+            nav.isToolbarHidden = true
+            for vc in nav.viewControllers {
+                vc.toolbarItems = []
+                if #available(iOS 16.0, *) {
+                    vc.navigationItem.documentProperties = nil
+                    vc.navigationItem.titleMenuProvider = nil
+                    vc.navigationItem.renameDelegate = nil
+                }
+            }
+        }
+        if #available(iOS 16.0, *) {
+            navigationItem.documentProperties = nil
+            navigationItem.titleMenuProvider = nil
+        }
+    }
+
+    func navigationControllers(in vc: UIViewController) -> [UINavigationController] {
+        var found: [UINavigationController] = []
+        if let nav = vc as? UINavigationController { found.append(nav) }
+        for child in vc.children { found += navigationControllers(in: child) }
+        return found
+    }
+
+    func previewController(_ controller: QLPreviewController, editingModeFor previewItem: QLPreviewItem) -> QLPreviewItemEditingMode {
+        return .disabled
+    }
+
+    func previewControllerWillDismiss(_ controller: QLPreviewController) {
+        onDismiss?()
     }
 }

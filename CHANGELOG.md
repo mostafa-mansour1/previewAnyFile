@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0
+
+New features; the callback API is unchanged. Tested on cordova-android 14 and 15, cordova-ios 8, and Capacitor 7 and 8.
+
+- Promise API: call any method without callbacks to get a Promise, e.g. `await PreviewAnyFile.previewPath(path, { onClose })`. It resolves with `SUCCESS` or `NO_APP` and rejects with the error message.
+- TypeScript types (`types/index.d.ts`).
+- `headers` option for remote URLs (iOS and Android), e.g. `{ Authorization: 'Bearer …' }`. Headers are not forwarded when a redirect goes to another host or from https to http.
+- `canPreview(nameOrMimeType)`: whether the device can show a file type. Uses Quick Look on iOS and the installed apps on Android (adds a `<queries>` entry to the Android manifest).
+- `disableShare` option (iOS): hides Quick Look's share button, the "Save to Files"/"Print" title menu and markup editing, keeping the close button. Checked on iOS 18.5 and 26.5. It changes the UI only and is not a security control; no effect on Android.
+- (Android) remote URLs are downloaded before opening, as on iOS, so they no longer depend on the viewer app accepting web links. HTTP errors now call the error callback.
+- (Android) fix the close callback going to the wrong call (or arriving as `NO_APP`) when a previous viewer's result arrived late; each preview now gets its own request code.
+- (Android) fix a stale MIME type from the previous call being reused when the next file has no recognisable extension.
+- (Android) retry with the generic type on any "no app" error; the old check only worked on English-language devices.
+- (Android) fall back to the cache folder when external storage is not available, instead of failing.
+- (iOS) fix a crash when `mimeType` is unknown and no `name` is given.
+- `previewAsset` reports an error for a missing asset instead of previewing the error page.
+
 ## 0.3.0
 
 Works on current Cordova and Capacitor again. Tested on cordova-android 14 and 15, cordova-ios 8, and Capacitor 7 and 8.

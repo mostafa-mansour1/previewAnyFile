@@ -3,6 +3,7 @@ package com.mostafa.previewanyfile;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Base64;
@@ -16,12 +17,21 @@ import org.apache.cordova.PluginResult;
 import org.apache.cordova.PluginResult.Status;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +39,11 @@ public class PreviewAnyFile extends CordovaPlugin {
 
   private CallbackContext callbackContext; // The callback context from which we were invoked.
   private String mimeType = null;
+
+  // Each preview gets its own request code, so a viewer's close result is reported to the call that
+  // opened it (with that call's MIME type) and late results from older previews are ignored.
+  private final Map<Integer, Object[]> pendingPreviews = Collections.synchronizedMap(new HashMap<Integer, Object[]>());
+  private int nextRequestCode = 1000;
 
   // Keep only the last path segment so a caller-supplied name like "../../x" cannot escape the
   // plugin's directory.
@@ -45,9 +60,12 @@ public class PreviewAnyFile extends CordovaPlugin {
 
   @Override
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+    if ("canPreview".equals(action)) {
+      callbackContext.sendPluginResult(new PluginResult(Status.OK, canPreview(args.optString(0), args.optString(1))));
+      return true;
+    }
     this.callbackContext = callbackContext;
-    cordova.setActivityResultCallback(this);
-    // this.executeArgs = args;
+    this.mimeType = null;
 
     cordova.getThreadPool().execute(new Runnable() {
       @Override
@@ -63,7 +81,7 @@ public class PreviewAnyFile extends CordovaPlugin {
               String path = args.getString(0);
               String namePreviewPath = args.getString(1);
               String PathMimetype = args.getString(2);
-              previewPath(path, namePreviewPath, PathMimetype);
+              previewPath(path, namePreviewPath, PathMimetype, args.optJSONObject(3));
               break;
             case "previewBase64":
               String base64 = args.getString(0);
@@ -95,12 +113,105 @@ public class PreviewAnyFile extends CordovaPlugin {
     viewFile(pathToUri(url));
   }
 
-  private void previewPath(String path, String name, String mediaType) throws URISyntaxException {
+  private void previewPath(String path, String name, String mediaType, JSONObject headers)
+      throws URISyntaxException, IOException {
     if (notEmpty(mediaType))
       this.mimeType = mediaType;
     else
       this.mimeType = notEmpty(name) ? bathToMime(name) : bathToMime(path);
-    viewFile(pathToUri(path));
+    String lower = path.toLowerCase();
+    if (lower.startsWith("http://") || lower.startsWith("https://")) {
+      // Download first, like iOS: viewer apps rarely accept an https link together with a MIME type.
+      viewFile(fileToUri(download(path, name, headers)));
+    } else {
+      viewFile(pathToUri(path));
+    }
+  }
+
+  private static final int MAX_REDIRECTS = 5;
+
+  private File download(String url, String name, JSONObject headers) throws IOException {
+    URL original = new URL(url);
+    URL current = original;
+    HttpURLConnection conn = null;
+    for (int redirects = 0;; redirects++) {
+      conn = (HttpURLConnection) current.openConnection();
+      conn.setInstanceFollowRedirects(false);
+      conn.setConnectTimeout(15000);
+      conn.setReadTimeout(30000);
+      // Send caller headers (e.g. Authorization) only to the original host and never over a downgrade to http.
+      boolean sameHost = current.getHost().equalsIgnoreCase(original.getHost());
+      boolean downgraded = "https".equals(original.getProtocol()) && !"https".equals(current.getProtocol());
+      if (headers != null && sameHost && !downgraded) {
+        Iterator<String> keys = headers.keys();
+        while (keys.hasNext()) {
+          String key = keys.next();
+          conn.setRequestProperty(key, headers.optString(key));
+        }
+      }
+      int code = conn.getResponseCode();
+      String location = conn.getHeaderField("Location");
+      if (code >= 300 && code < 400 && notEmpty(location)) {
+        conn.disconnect();
+        if (redirects >= MAX_REDIRECTS)
+          throw new IOException("Download failed: too many redirects");
+        current = new URL(current, location);
+        continue;
+      }
+      if (code < 200 || code >= 300) {
+        conn.disconnect();
+        throw new IOException("Download failed with HTTP " + code);
+      }
+      break;
+    }
+
+    if (!notEmpty(mimeType) && notEmpty(conn.getContentType()))
+      mimeType = conn.getContentType().split(";")[0].trim();
+
+    String fileName = safeFileName(name);
+    if (!notEmpty(fileName))
+      fileName = safeFileName(Uri.parse(current.toString()).getLastPathSegment());
+    if (!notEmpty(fileName))
+      fileName = "file";
+    if (fileName.lastIndexOf('.') <= 0 && notEmpty(mimeType)) {
+      String ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+      if (notEmpty(ext))
+        fileName = fileName + "." + ext;
+    }
+
+    File out = new File(getDownloadDir(), fileName);
+    InputStream in = conn.getInputStream();
+    OutputStream os = new FileOutputStream(out);
+    try {
+      byte[] buffer = new byte[8192];
+      int read;
+      while ((read = in.read(buffer)) != -1)
+        os.write(buffer, 0, read);
+    } catch (IOException e) {
+      // noinspection ResultOfMethodCallIgnored
+      out.delete();
+      throw e;
+    } finally {
+      os.close();
+      in.close();
+      conn.disconnect();
+    }
+    return out;
+  }
+
+  private boolean canPreview(String name, String mediaType) {
+    String type = notEmpty(mediaType) ? mediaType : null;
+    if (type == null && notEmpty(name)) {
+      String ext = MimeTypeMap.getFileExtensionFromUrl(name.replace(" ", "_"));
+      if (notEmpty(ext))
+        type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext.toLowerCase());
+    }
+    if (type == null)
+      return false;
+    Intent intent = new Intent(Intent.ACTION_VIEW);
+    intent.setDataAndType(Uri.parse("content://" + providerAuthority() + "/probe"), type);
+    PackageManager pm = cordova.getActivity().getPackageManager();
+    return !pm.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).isEmpty();
   }
 
   private void previewBase64(String base64, String name, String mediaType) throws IOException, URISyntaxException {
@@ -119,11 +230,20 @@ public class PreviewAnyFile extends CordovaPlugin {
       Intent intent = new Intent(Intent.ACTION_VIEW);
       intent.setDataAndType(uri, mimeType);
       intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-      this.cordova.getActivity().startActivityForResult(intent, 1);
+      int requestCode;
+      synchronized (this) {
+        requestCode = nextRequestCode++;
+      }
+      pendingPreviews.put(requestCode, new Object[] { this.callbackContext, mimeType });
+      try {
+        this.cordova.startActivityForResult(this, intent, requestCode);
+      } catch (ActivityNotFoundException e) {
+        pendingPreviews.remove(requestCode);
+        throw e;
+      }
       this.returnResult(Status.OK, "SUCCESS");
     } catch (ActivityNotFoundException t) {
-      if (t.getLocalizedMessage().toLowerCase().contains("no activity")
-          && !mimeType.equalsIgnoreCase("application/*")) {
+      if (!mimeType.equalsIgnoreCase("application/*")) {
         mimeType = "application/*";
         viewFile(uri);
       } else {
@@ -137,14 +257,19 @@ public class PreviewAnyFile extends CordovaPlugin {
 
     Uri uri = null;
     if (url.startsWith("file:")) {
-      File file = new File(new URI(url));
-      uri = FileProvider.getUriForFile(this.cordova.getActivity(),
-          this.cordova.getActivity().getApplicationContext().getPackageName() + ".previewanyfile.provider", file);
-
+      uri = fileToUri(new File(new URI(url)));
     } else {
       uri = Uri.parse(url);
     }
     return uri;
+  }
+
+  private String providerAuthority() {
+    return this.cordova.getActivity().getApplicationContext().getPackageName() + ".previewanyfile.provider";
+  }
+
+  private Uri fileToUri(File file) {
+    return FileProvider.getUriForFile(this.cordova.getActivity(), providerAuthority(), file);
   }
 
   private String base64ToPath(String base64, String fileName) throws IOException {
@@ -221,14 +346,14 @@ public class PreviewAnyFile extends CordovaPlugin {
 
   private String getDownloadDir() throws IOException {
     // better check, otherwise it may crash the app
-    if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-      // we need to use external storage since we need to share to another app
-      final String dir = webView.getContext().getExternalFilesDir(null) + "/preview-any-files";
-      createOrCleanDir(dir);
-      return dir;
-    } else {
-      return null;
-    }
+    File base = Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
+        ? webView.getContext().getExternalFilesDir(null)
+        : null;
+    if (base == null)
+      base = webView.getContext().getCacheDir();
+    final String dir = base + "/preview-any-files";
+    createOrCleanDir(dir);
+    return dir;
   }
 
   private void createOrCleanDir(final String downloadDir) throws IOException {
@@ -251,14 +376,14 @@ public class PreviewAnyFile extends CordovaPlugin {
 
   @Override
   public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-    // do something with the result
-    String status = "NO_APP";
-    if (notEmpty(mimeType)) {
-      if (!mimeType.equalsIgnoreCase("application/*")) {
-        status = "CLOSING";
-      }
+    Object[] preview = pendingPreviews.remove(requestCode);
+    if (preview != null) {
+      String type = (String) preview[1];
+      String status = notEmpty(type) && !type.equalsIgnoreCase("application/*") ? "CLOSING" : "NO_APP";
+      PluginResult result = new PluginResult(Status.OK, status);
+      result.setKeepCallback(true);
+      ((CallbackContext) preview[0]).sendPluginResult(result);
     }
-    this.returnResult(Status.OK, status);
     super.onActivityResult(requestCode, resultCode, intent);
   }
 
